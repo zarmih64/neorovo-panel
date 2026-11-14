@@ -161,22 +161,28 @@ function renderAnalytics(){
 function deleteAnalytics(id){if(confirm('این ردیف آمار حذف شود؟')){analytics=analytics.filter(x=>x.id!==id);saveAnalytics()}}
 $('saveStats').onclick=()=>{const title=$('statTitle').value.trim();if(!title){alert('عنوان ریلز را وارد کن.');return}const record={id:String(Date.now()),title,date:$('statDate').value||todayISO(),category:$('statCategory').value,views:num('statViews'),reach:num('statReach'),likes:num('statLikes'),comments:num('statComments'),saves:num('statSaves'),shares:num('statShares'),profile:num('statProfile'),follows:num('statFollows'),note:$('statNote').value.trim()};analytics.push(record);saveAnalytics();alert('آمار ثبت شد. این اطلاعات فقط در همین مرورگر ذخیره شده است.');};
 $('resetStats').onclick=()=>{['statTitle','statDate','statViews','statReach','statLikes','statComments','statSaves','statShares','statProfile','statFollows','statNote'].forEach(id=>$(id).value='');$('statDate').value=todayISO();};
-let calendarCursor=new Date();calendarCursor.setDate(1);let selectedCalendarDate=todayISO();
+const persianCalendar=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long',day:'numeric'});
+const persianNumeric=new Intl.DateTimeFormat('en-US-u-ca-persian',{year:'numeric',month:'numeric',day:'numeric'});
+function persianParts(date){const parts=persianNumeric.formatToParts(date),out={};parts.forEach(p=>{if(p.type==='year'||p.type==='month'||p.type==='day')out[p.type]=Number(p.value)});return out}
+function dateAtNoon(date){return new Date(date.getFullYear(),date.getMonth(),date.getDate(),12)}
+function addDays(date,n){const d=dateAtNoon(date);d.setDate(d.getDate()+n);return d}
+function startOfPersianMonth(date){let d=dateAtNoon(date);for(let i=0;i<32;i++){if(persianParts(d).day===1)return d;d=addDays(d,-1)}return d}
+let calendarCursor=startOfPersianMonth(new Date()),selectedCalendarDate=todayISO();
 function savePlans(){localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}
-function isoLocal(y,m,d){const dt=new Date(y,m,d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
-function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR',{calendar:'gregory',weekday:'long',day:'numeric',month:'long'}).format(d)}
-function monthLabel(d){return new Intl.DateTimeFormat('fa-IR',{calendar:'gregory',year:'numeric',month:'long'}).format(d)}
+function isoFromDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d)}
+function monthLabel(d){return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long'}).format(d)}
 function renderCalendar(){
  const grid=$('calendarGrid');if(!grid)return;
  $('calendarMonthLabel').textContent=monthLabel(calendarCursor);
- const year=calendarCursor.getFullYear(),month=calendarCursor.getMonth();
- const first=new Date(year,month,1),lastDay=new Date(year,month+1,0).getDate();
+ const first=calendarCursor,firstParts=persianParts(first);
+ let lastDay=1;while(lastDay<32){const next=addDays(first,lastDay);const p=persianParts(next);if(p.year!==firstParts.year||p.month!==firstParts.month)break;lastDay++}
  const offset=(first.getDay()+1)%7,totalCells=Math.ceil((offset+lastDay)/7)*7;
  const weekdays=['ش','ی','د','س','چ','پ','ج'];
  let html=weekdays.map(w=>'<div class="cal-weekday">'+w+'</div>').join('');
  const today=todayISO();
  for(let i=0;i<totalCells;i++){
-  const day=i-offset+1,date=isoLocal(year,month,day),inside=day>=1&&day<=lastDay;
+  const day=i-offset+1,cellDate=addDays(first,day-1),date=isoFromDate(cellDate),inside=day>=1&&day<=lastDay;
   const items=inside?plans.filter(p=>p.date===date):[];
   const classes=['cal-day',inside?'':'outside',date===today?'today':'',date===selectedCalendarDate?'selected':''].filter(Boolean).join(' ');
   html+='<div class="'+classes+'" data-date="'+date+'"><div class="cal-daynum">'+(inside?fa(day):'')+'</div>'+items.slice(0,2).map(p=>'<span class="cal-event '+(p.status==='در حال ساخت'?'build':p.status==='آماده انتشار'?'ready':p.status==='منتشر شد'?'published':'')+'">'+esc(p.title)+'</span>').join('')+(items.length>2?'<div class="cal-more">+'+fa(items.length-2)+' مورد دیگر</div>':'')+'</div>';
@@ -192,23 +198,23 @@ function renderSelectedDay(){
 }
 function renderPlans(){
  const el=$('planList');
- el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" onclick="editPlan(\\''+p.id+'\\')">ویرایش</button><button class="btn danger" onclick="deletePlan(\\''+p.id+'\\')">حذف</button></div></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>';
+ el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+faDateLabel(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" onclick="editPlan(\\''+p.id+'\\')">ویرایش</button><button class="btn danger" onclick="deletePlan(\\''+p.id+'\\')">حذف</button></div></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>';
  renderCalendar();
 }
 function editPlan(id){
  const p=plans.find(x=>x.id===id);if(!p)return;
  const title=prompt('عنوان محتوا:',p.title);if(title===null)return;if(!title.trim()){alert('عنوان نمی‌تواند خالی باشد.');return}
- const date=prompt('تاریخ جدید با فرمت میلادی YYYY-MM-DD:',p.date);if(date===null)return;
+ const date=prompt('تاریخ را با فرمت میلادی YYYY-MM-DD وارد کن (نمونه: 2026-11-20):',p.date);if(date===null)return;
  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(new Date(date+'T12:00:00').getTime())){alert('تاریخ معتبر نیست. نمونه: 2026-11-20');return}
  const status=prompt('وضعیت را دقیقاً یکی از این موارد وارد کن: ایده، در حال ساخت، آماده انتشار، منتشر شد',p.status);if(status===null)return;
  if(!['ایده','در حال ساخت','آماده انتشار','منتشر شد'].includes(status)){alert('وضعیت واردشده معتبر نیست.');return}
- p.title=title.trim();p.date=date;p.status=status;selectedCalendarDate=date;calendarCursor=new Date(date+'T12:00:00');calendarCursor.setDate(1);$('planDate').value=date;savePlans();
+ p.title=title.trim();p.date=date; p.status=status;selectedCalendarDate=date;calendarCursor=startOfPersianMonth(new Date(date+'T12:00:00'));$('planDate').value=date;savePlans();
 }
 function deletePlan(id){if(confirm('این برنامه از تقویم حذف شود؟')){plans=plans.filter(p=>p.id!==id);savePlans()}}
-$('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){alert('موضوع محتوا را بنویس.');return}const date=$('planDate').value||todayISO();plans.push({id:String(Date.now()),title,date,category:$('planCategory').value,status:$('planStatus').value});selectedCalendarDate=date;calendarCursor=new Date(date+'T12:00:00');calendarCursor.setDate(1);$('planTitle').value='';localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()};
-$('prevMonth').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar()};
-$('nextMonth').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar()};
-$('todayMonth').onclick=()=>{calendarCursor=new Date();calendarCursor.setDate(1);selectedCalendarDate=todayISO();$('planDate').value=selectedCalendarDate;renderCalendar()};
+$('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){alert('موضوع محتوا را بنویس.');return}const date=$('planDate').value||todayISO();plans.push({id:String(Date.now()),title,date,category:$('planCategory').value,status:$('planStatus').value});selectedCalendarDate=date;calendarCursor=startOfPersianMonth(new Date(date+'T12:00:00'));$('planTitle').value='';localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()};
+$('prevMonth').onclick=()=>{calendarCursor=startOfPersianMonth(addDays(calendarCursor,-1));renderCalendar()};
+$('nextMonth').onclick=()=>{calendarCursor=startOfPersianMonth(addDays(calendarCursor,35));renderCalendar()};
+$('todayMonth').onclick=()=>{selectedCalendarDate=todayISO();calendarCursor=startOfPersianMonth(new Date());$('planDate').value=selectedCalendarDate;renderCalendar()};
 renderAnalytics();renderPlans();
 
 /* Local data backup and restore */
