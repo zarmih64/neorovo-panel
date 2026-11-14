@@ -523,12 +523,12 @@ $('importBackup').onchange=async(event)=>{
  if(!urlInput||!codeInput||!status||!connect)return;
  const urlKey='neorovo_ig_worker_url';
  urlInput.value=localStorage.getItem(urlKey)||'';
- const cleanBase=()=>urlInput.value.trim().replace(/\\/+$/,'');
+ const cleanBase=()=>urlInput.value.trim().replace(/\/+$/,'');
  const setStatus=(message,kind='')=>{status.textContent=message;status.className='ai-status '+kind};
  urlInput.addEventListener('change',()=>{const v=cleanBase();urlInput.value=v;localStorage.setItem(urlKey,v)});
  async function api(path,options={}){
   const base=cleanBase();if(!base)throw new Error('ابتدا نشانی Cloudflare Worker را وارد کن.');
-  if(!/^https:\\/\\//i.test(base))throw new Error('نشانی Worker باید با https:// شروع شود.');
+  if(!/^https:\/\//i.test(base))throw new Error('نشانی Worker باید با https:// شروع شود.');
   const res=await fetch(base+path,{...options,headers:{'content-type':'application/json',...(options.headers||{})}});
   const data=await res.json().catch(()=>({}));
   if(!res.ok)throw new Error(data.error||('خطای سرویس: '+res.status));
