@@ -161,8 +161,8 @@ function renderAnalytics(){
 function deleteAnalytics(id){if(confirm('این ردیف آمار حذف شود؟')){analytics=analytics.filter(x=>x.id!==id);saveAnalytics()}}
 $('saveStats').onclick=()=>{const title=$('statTitle').value.trim();if(!title){alert('عنوان ریلز را وارد کن.');return}const record={id:String(Date.now()),title,date:$('statDate').value||todayISO(),category:$('statCategory').value,views:num('statViews'),reach:num('statReach'),likes:num('statLikes'),comments:num('statComments'),saves:num('statSaves'),shares:num('statShares'),profile:num('statProfile'),follows:num('statFollows'),note:$('statNote').value.trim()};analytics.push(record);saveAnalytics();alert('آمار ثبت شد. این اطلاعات فقط در همین مرورگر ذخیره شده است.');};
 $('resetStats').onclick=()=>{['statTitle','statDate','statViews','statReach','statLikes','statComments','statSaves','statShares','statProfile','statFollows','statNote'].forEach(id=>$(id).value='');$('statDate').value=todayISO();};
-const persianCalendar=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long',day:'numeric'});
-const persianNumeric=new Intl.DateTimeFormat('en-US-u-ca-persian',{year:'numeric',month:'numeric',day:'numeric'});
+const persianCalendar=new Intl.DateTimeFormat('fa-IR',{calendar:'persian',numberingSystem:'arabext',year:'numeric',month:'long',day:'numeric'});
+const persianNumeric=new Intl.DateTimeFormat('en-US',{calendar:'persian',numberingSystem:'latn',year:'numeric',month:'numeric',day:'numeric'});
 function persianParts(date){const parts=persianNumeric.formatToParts(date),out={};parts.forEach(p=>{if(p.type==='year'||p.type==='month'||p.type==='day')out[p.type]=Number(p.value)});return out}
 function dateAtNoon(date){return new Date(date.getFullYear(),date.getMonth(),date.getDate(),12)}
 function addDays(date,n){const d=dateAtNoon(date);d.setDate(d.getDate()+n);return d}
@@ -170,8 +170,8 @@ function startOfPersianMonth(date){let d=dateAtNoon(date);for(let i=0;i<32;i++){
 let calendarCursor=startOfPersianMonth(new Date()),selectedCalendarDate=todayISO();
 function savePlans(){localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}
 function isoFromDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d)}
-function monthLabel(d){return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long'}).format(d)}
+function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR',{calendar:'persian',numberingSystem:'arabext',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d)}
+function monthLabel(d){return new Intl.DateTimeFormat('fa-IR',{calendar:'persian',numberingSystem:'arabext',year:'numeric',month:'long'}).format(d)}
 function renderCalendar(){
  const grid=$('calendarGrid');if(!grid)return;
  $('calendarMonthLabel').textContent=monthLabel(calendarCursor);
