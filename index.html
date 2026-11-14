@@ -56,6 +56,7 @@
  <div class="fields">
   <div class="field"><label>عنوان ریلز</label><input id="statTitle" value="اختاپوس سه قلبی"></div>
   <div class="field"><label>تاریخ ثبت آمار</label><input id="statDate" type="date"></div>
+  <div class="field"><label>دسته‌بندی این ریلز</label><select id="statCategory"><option>دانستنی عجیب</option><option>هوش مصنوعی</option><option>معمای ذهنی</option><option>شگفتی علمی</option><option>تاریخ و واقعیت</option></select></div>
   <div class="field"><label>بازدید / Plays</label><input id="statViews" type="number" min="0" value="31"></div>
   <div class="field"><label>دسترسی / Accounts reached</label><input id="statReach" type="number" min="0" placeholder="اگر نمایش داده می‌شود"></div>
   <div class="field"><label>لایک</label><input id="statLikes" type="number" min="0" value="0"></div>
@@ -117,4 +118,33 @@ function viewDraft(id){let x=drafts.find(d=>d.id===id);if(x){current=x;$('previe
 function approve(id){let x=drafts.find(d=>d.id===id);if(x&&confirm('این محتوا را بررسی کرده‌ای و تأیید می‌کنی؟ این کار فقط وضعیت پیش‌نویس را تغییر می‌دهد و چیزی منتشر نمی‌کند.')){x.status='approved';persist()}}
 function removeDraft(id){if(confirm('این پیش‌نویس حذف شود؟')){drafts=drafts.filter(d=>d.id!==id);persist()}}
 $('generate').onclick=makeScript;$('generateAI').onclick=makeAIScript;$('saveKey').onclick=activateKey;$('removeKey').onclick=()=>{sessionStorage.removeItem('neorovo_gemini_key');$('geminiKey').value='';setAIStatus('کلید از نشست فعلی پاک شد.','ok')};$('testAI').onclick=testAI;if(sessionStorage.getItem('neorovo_gemini_key'))setAIStatus('یک کلید در نشست فعلی فعال است.','ok');$('save').onclick=()=>{if(!current)return;if(drafts.some(x=>x.id===current.id)){alert('این پیش‌نویس قبلاً ذخیره شده.');return}drafts.push(current);persist();$('save').disabled=true;alert('پیش‌نویس ذخیره شد.')};$('copy').onclick=async()=>{if(!current)return;try{await navigator.clipboard.writeText(current.script);alert('متن کپی شد.')}catch(e){alert('کپی خودکار در این مرورگر در دسترس نیست؛ متن را انتخاب و کپی کن.')}};$('clear').onclick=()=>{['topic','extra'].forEach(x=>$(x).value='');$('preview').textContent='فرم پاک شد.';current=null;$('copy').disabled=true;$('save').disabled=true};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()});render();
+
+/* Growth dashboard: manual, local-only records */
+let analytics=JSON.parse(localStorage.getItem('neorovo_analytics')||'[]');
+let plans=JSON.parse(localStorage.getItem('neorovo_plans')||'[]');
+const todayISO=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+$('statDate').value=todayISO();$('planDate').value=todayISO();
+function num(id){const v=Number($(id).value||0);return Number.isFinite(v)&&v>=0?v:0}
+function saveAnalytics(){localStorage.setItem('neorovo_analytics',JSON.stringify(analytics));renderAnalytics()}
+function renderAnalytics(){
+ const total=key=>analytics.reduce((s,x)=>s+(Number(x[key])||0),0);
+ $('sumViews').textContent=fa(total('views'));$('sumReach').textContent=fa(total('reach'));$('sumSaves').textContent=fa(total('saves'));$('trackedPosts').textContent=fa(analytics.length);
+ const rows=$('analyticsRows');
+ rows.innerHTML=analytics.length?'<div class="table-wrap"><table class="data-table"><thead><tr><th>ریلز</th><th>دسته</th><th>تاریخ ثبت</th><th>بازدید</th><th>دسترسی</th><th>لایک</th><th>کامنت</th><th>ذخیره</th><th>اشتراک</th><th>تعامل / Reach</th><th>عملیات</th></tr></thead><tbody>'+analytics.slice().reverse().map(x=>{const interactions=x.likes+x.comments+x.saves+x.shares;const rate=x.reach>0?(interactions/x.reach*100).toFixed(1)+'٪':'—';return '<tr><td>'+esc(x.title)+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.date)+'</td><td>'+fa(x.views)+'</td><td>'+fa(x.reach||0)+'</td><td>'+fa(x.likes)+'</td><td>'+fa(x.comments)+'</td><td>'+fa(x.saves)+'</td><td>'+fa(x.shares)+'</td><td>'+rate+'</td><td><button class="btn danger" onclick="deleteAnalytics(\''+x.id+'\')">حذف</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">هنوز آماری ثبت نشده است.</div>';
+ const insight=$('smartInsight');
+ if(!analytics.length){insight.textContent='با ثبت آمار چند ریلز، مقایسه و پیشنهاد موضوع بعدی اینجا نمایش داده می‌شود.';return}
+ const best=analytics.slice().sort((a,b)=>b.views-a.views)[0];
+ let message='بیشترین بازدید ثبت‌شده مربوط به «'+best.title+'» با '+fa(best.views)+' بازدید است. ';
+ if(analytics.length===1)message+='فعلاً فقط یک ریلز ثبت شده؛ برای تشخیص سلیقه مخاطب باید چند محتوای دیگر هم منتشر و مقایسه شود.';
+ else {const byCat={};analytics.forEach(x=>{(byCat[x.category]??=[]).push(x.views)});const cats=Object.keys(byCat).map(k=>({k,avg:byCat[k].reduce((a,b)=>a+b,0)/byCat[k].length,n:byCat[k].length})).sort((a,b)=>b.avg-a.avg);message+='میانگین بازدید دسته «'+cats[0].k+'» در داده‌های ثبت‌شده بیشتر است ('+fa(Math.round(cats[0].avg))+' بازدید در هر ریلز، بر پایه '+fa(cats[0].n)+' مورد). این فقط نشانه اولیه است، نه نتیجه قطعی.'}
+ insight.textContent=message;
+}
+function deleteAnalytics(id){if(confirm('این ردیف آمار حذف شود؟')){analytics=analytics.filter(x=>x.id!==id);saveAnalytics()}}
+$('saveStats').onclick=()=>{const title=$('statTitle').value.trim();if(!title){alert('عنوان ریلز را وارد کن.');return}const record={id:String(Date.now()),title,date:$('statDate').value||todayISO(),category:$('statCategory').value,views:num('statViews'),reach:num('statReach'),likes:num('statLikes'),comments:num('statComments'),saves:num('statSaves'),shares:num('statShares'),profile:num('statProfile'),follows:num('statFollows'),note:$('statNote').value.trim()};analytics.push(record);saveAnalytics();alert('آمار ثبت شد. این اطلاعات فقط در همین مرورگر ذخیره شده است.');};
+$('resetStats').onclick=()=>{['statTitle','statDate','statViews','statReach','statLikes','statComments','statSaves','statShares','statProfile','statFollows','statNote'].forEach(id=>$(id).value='');$('statDate').value=todayISO();};
+function renderPlans(){const el=$('planList');el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><button class="btn danger" onclick="deletePlan(\''+p.id+'\')">حذف</button></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>'}
+function deletePlan(id){if(confirm('این برنامه از تقویم حذف شود؟')){plans=plans.filter(p=>p.id!==id);localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}}
+$('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){alert('موضوع محتوا را بنویس.');return}plans.push({id:String(Date.now()),title,date:$('planDate').value||todayISO(),category:$('planCategory').value,status:$('planStatus').value});localStorage.setItem('neorovo_plans',JSON.stringify(plans));$('planTitle').value='';renderPlans()};
+renderAnalytics();renderPlans();
+
 </script></body></html>
