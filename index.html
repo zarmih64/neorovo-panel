@@ -298,11 +298,15 @@ function renderCalendar(){
 function renderSelectedDay(){
  const el=$('selectedDayPlans');if(!el)return;
  const items=plans.filter(p=>p.date===selectedCalendarDate);
- el.innerHTML='<div class="day-detail"><h4>برنامه‌های '+faDateLabel(selectedCalendarDate)+'</h4>'+(items.length?items.map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" onclick="editPlan(\\''+p.id+'\\')">ویرایش / جابه‌جایی</button><button class="btn danger" onclick="deletePlan(\\''+p.id+'\\')">حذف</button></div></div>').join(''):'<div class="empty">برای این روز برنامه‌ای ثبت نشده. با انتخاب روز، تاریخ فرم بالا تنظیم می‌شود.</div>')+'</div>';
+ el.innerHTML='<div class="day-detail"><h4>برنامه‌های '+faDateLabel(selectedCalendarDate)+'</h4>'+(items.length?items.map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" data-edit-plan="${esc(p.id)}">ویرایش / جابه‌جایی</button><button class="btn danger" data-delete-plan="${esc(p.id)}">حذف</button></div></div>').join(''):'<div class="empty">برای این روز برنامه‌ای ثبت نشده. با انتخاب روز، تاریخ فرم بالا تنظیم می‌شود.</div>')+'</div>';
+ el.querySelectorAll('[data-edit-plan]').forEach(b=>b.onclick=()=>editPlan(b.dataset.editPlan));
+ el.querySelectorAll('[data-delete-plan]').forEach(b=>b.onclick=()=>deletePlan(b.dataset.deletePlan));
 }
 function renderPlans(){
  const el=$('planList');
- el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+faDateLabel(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" onclick="editPlan(\\''+p.id+'\\')">ویرایش</button><button class="btn danger" onclick="deletePlan(\\''+p.id+'\\')">حذف</button></div></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>';
+ el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+faDateLabel(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" data-edit-plan="${esc(p.id)}">ویرایش</button><button class="btn danger" data-delete-plan="${esc(p.id)}">حذف</button></div></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>';
+ el.querySelectorAll('[data-edit-plan]').forEach(b=>b.onclick=()=>editPlan(b.dataset.editPlan));
+ el.querySelectorAll('[data-delete-plan]').forEach(b=>b.onclick=()=>deletePlan(b.dataset.deletePlan));
  renderCalendar();
 }
 function editPlan(id){
