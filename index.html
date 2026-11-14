@@ -46,6 +46,7 @@
 <div class="field"><label>دسته‌بندی</label><select id="category"><option>دانستنی عجیب</option><option>هوش مصنوعی</option><option>معمای ذهنی</option><option>شگفتی علمی</option><option>تاریخ و واقعیت</option></select></div>
 <div class="field"><label>مدت ویدیو</label><select id="duration"><option>۱۵ ثانیه</option><option selected>۳۰ ثانیه</option><option>۴۵ ثانیه</option><option>۶۰ ثانیه</option></select></div>
 <div class="field"><label>لحن</label><select id="tone"><option>مرموز و سینمایی</option><option>هیجان‌انگیز</option><option>طنز و خودمانی</option><option>علمی و شفاف</option></select></div>
+<div class="field"><label>سبک روایت</label><select id="storyStyle"><option>سؤال شوکه‌کننده</option><option>روایت معمایی</option><option>کشف یک حقیقت عجیب</option><option>مقایسه غیرمنتظره</option><option>آزمایش ذهنی و حدس مخاطب</option></select></div>
 <div class="field full"><label>نکته یا توضیح دلخواه (اختیاری)</label><textarea id="extra" placeholder="اگر زاویه خاصی مدنظرت هست بنویس..."></textarea></div>
 </div><div class="actions"><button class="btn primary" id="generateAI">🤖 ساخت با هوش مصنوعی</button><button class="btn soft" id="generate">ساخت سناریوی قالبی</button><button class="btn soft" id="clear">پاک‌کردن فرم</button></div><p class="hint">برای خروجی هوشمند، کلید Gemini را فعال کن. خروجی AI هم نیازمند بررسی صحت و منابع است؛ مدل بدون جست‌وجوی وب نمی‌تواند ادعای راستی‌آزمایی قطعی کند.</p>
 </section>
@@ -143,22 +144,73 @@ function setAIStatus(message,type=''){const el=$('aiStatus');el.textContent=mess
 function activateKey(){const key=$('geminiKey').value.trim();if(!key){setAIStatus('ابتدا کلید API را وارد کن.','err');return}sessionStorage.setItem('neorovo_gemini_key',key);$('geminiKey').value='';setAIStatus('کلید فقط در نشست فعلی این تب فعال شد. برای اطمینان، اتصال را آزمایش کن.','ok')}
 async function callGemini(prompt){const key=sessionStorage.getItem('neorovo_gemini_key');if(!key)throw new Error('ابتدا کلید رایگان Gemini را در بخش اتصال هوش مصنوعی فعال کن.');const models=['gemini-3.8-flash','gemini-3.7-flash','gemini-3.5-flash-lite'];let lastError='';for(const model of models){for(let attempt=0;attempt<3;attempt++){try{const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.75,maxOutputTokens:4096}})});const data=await response.json();if(!response.ok){const message=data?.error?.message||('خطای سرویس: '+response.status);lastError='مدل '+model+' ('+response.status+'): '+message;if(response.status===503||response.status===502||response.status===500){if(attempt<2){const wait=[2000,5000,10000][attempt];setAIStatus('سرویس موقتاً شلوغ است؛ تلاش مجدد تا '+(wait/1000)+' ثانیه دیگر…');await new Promise(resolve=>setTimeout(resolve,wait));continue}break}throw new Error(lastError)}const result=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('\n').trim();if(!result)throw new Error('پاسخ متنی از هوش مصنوعی دریافت نشد.');return result}catch(e){lastError=e.message;if(!(/503|502|500/.test(lastError))||attempt===2)throw e;const wait=[2000,5000,10000][attempt];setAIStatus('ارتباط موقتاً برقرار نشد؛ تلاش دوباره تا '+(wait/1000)+' ثانیه دیگر…');await new Promise(resolve=>setTimeout(resolve,wait))}}}throw new Error('سرویس Gemini در حال حاضر برای مدل‌های جایگزین هم پاسخ‌گو نیست. چند دقیقه بعد دوباره امتحان کن. آخرین پاسخ: '+lastError)}
 async function testAI(){setAIStatus('در حال آزمایش اتصال به Gemini…');$('testAI').disabled=true;try{const result=await callGemini('به فارسی فقط بنویس: اتصال برقرار است.');setAIStatus('اتصال موفق است. پاسخ آزمایشی: '+result,'ok')}catch(e){setAIStatus('اتصال ناموفق: '+e.message,'err')}finally{$('testAI').disabled=false}}
-async function makeAIScript(){const topic=$('topic').value.trim();if(!topic){alert('اول موضوع محتوا را بنویس.');return}const btn=$('generateAI');btn.disabled=true;btn.textContent='در حال تولید…';setAIStatus('درخواست به هوش مصنوعی ارسال شد؛ کمی صبر کن…');const prompt=`تو نویسنده و تهیه‌کننده محتوای برند فارسی NEOROVO هستی. شعار برند: «متفاوت ببین، شگفت‌زده شو!». مخاطب فارسی‌زبان ایران است. خروجی را کاملاً فارسی، جذاب، دقیق و مناسب ریلز اینستاگرام بنویس.
+async function makeAIScript(){
+ const topic=$('topic').value.trim();
+ if(!topic){alert('اول موضوع محتوا را بنویس.');return}
+ const btn=$('generateAI');btn.disabled=true;btn.textContent='در حال ساخت بسته محتوا…';
+ setAIStatus('در حال آماده‌سازی سناریو، گویندگی و پرامپت‌های تصویری…');
+ const prompt=`نقش تو: مدیر خلاقیت، نویسنده و تهیه‌کننده ریلز برند فارسی NEOROVO با شعار «متفاوت ببین، شگفت‌زده شو!».
+مخاطب: فارسی‌زبان ایرانی. زبان خروجی: فارسی طبیعی، روان، امروزی و قابل‌خواندن با صدای گوینده؛ از ترجمه تحت‌اللفظی و عبارت‌های مصنوعی دوری کن.
+هویت بصری: مرموز، سینمایی، علمی-آینده‌نگر، مشکی و بنفش نئونی، کنتراست بالا، عمودی 9:16.
 موضوع: ${topic}
-دسته: ${$('category').value}
+دسته‌بندی: ${$('category').value}
 مدت: ${$('duration').value}
 لحن: ${$('tone').value}
-توضیح اضافه: ${$('extra').value.trim()||'ندارد'}
-قالب خروجی:
-۱) سه عنوان پیشنهادی و یک Hook قوی برای ۳ ثانیه اول.
-۲) سناریوی کامل با زمان‌بندی صحنه‌به‌صحنه متناسب با مدت انتخابی.
-۳) متن گویندگی روان و طبیعی فارسی.
-۴) نوشته‌های کوتاه روی تصویر.
-۵) برای هر صحنه یک پرامپت تصویری انگلیسی با سبک مرموز، سینمایی، مشکی و بنفش، عمودی 9:16 و بدون نوشته.
-۶) کپشن، دعوت به تعامل و ۵ تا ۸ هشتگ مرتبط.
-۷) بخش «راستی‌آزمایی و منابع»: هیچ آمار، نقل‌قول، داستان یا واقعیتی را جعل نکن. اگر منبع یا نشانی دقیق را با اطمینان نمی‌دانی، صریح بنویس «نیازمند بررسی» و عبارت جست‌وجوی پیشنهادی بده؛ هرگز منبع جعلی نساز. اگر موضوع علمی یا تاریخی است، مرز بین واقعیت و فرضیه را روشن کن.
-از کلیشه و مقدمه طولانی دوری کن. خروجی آماده بازبینی باشد، نه ادعای انتشار قطعی.`;
-try{const result=await callGemini(prompt);current={id:Date.now(),topic,category:$('category').value,duration:$('duration').value,tone:$('tone').value,script:result,status:'pending',created:new Date().toLocaleDateString('fa-IR'),engine:'Gemini'};$('preview').textContent=result;$('copy').disabled=false;$('save').disabled=false;setAIStatus('سناریو با هوش مصنوعی تولید شد. قبل از انتشار، ادعاها و منابع را بررسی کن.','ok')}catch(e){setAIStatus('تولید انجام نشد: '+e.message,'err')}finally{btn.disabled=false;btn.textContent='🤖 ساخت با هوش مصنوعی'}}
+سبک روایت: ${$('storyStyle').value}
+نکته اضافه کاربر: ${$('extra').value.trim()||'ندارد'}
+
+یک بسته کامل و قابل اجرا برای ساخت یک ریلز بساز و دقیقاً با این ساختار پاسخ بده:
+
+۱. ایده مرکزی و زاویه جذاب:
+- در یک جمله بگو چرا مخاطب ایرانی باید این ویدیو را تا آخر ببیند.
+- سه عنوان کوتاه و کنجکاوی‌برانگیز پیشنهاد بده.
+- یک هوک بسیار قوی برای ۲ تا ۳ ثانیه اول بنویس.
+
+۲. سناریوی زمان‌بندی‌شده:
+- کل زمان‌بندی باید دقیقاً با مدت انتخابی هماهنگ باشد.
+- صحنه‌ها را در بازه‌های زمانی مشخص تقسیم کن؛ هر صحنه ترجیحاً ۳ تا ۶ ثانیه.
+- برای هر صحنه جداگانه بنویس: زمان، تصویر/اتفاق، متن گویندگی همان بخش، نوشته کوتاه روی تصویر، حرکت دوربین یا افکت.
+- شروع سریع باشد، میانه اطلاعات تازه بدهد و پایان یک نکته به‌یادماندنی یا غافلگیرکننده داشته باشد.
+
+۳. متن گویندگی یکپارچه:
+- متن نهایی را جداگانه و بدون توضیحات تدوین بده تا بتوانم مستقیم در ابزار صدای فارسی وارد کنم.
+- جمله‌ها کوتاه، محاوره‌ای و خوش‌آهنگ باشند.
+- متن با زمان ویدیو تناسب داشته باشد؛ از پرگویی پرهیز کن.
+
+۴. پرامپت ساخت تصویر/ویدئو با هوش مصنوعی:
+- برای تک‌تک صحنه‌ها یک پرامپت مستقل انگلیسی بنویس.
+- هر پرامپت شامل سوژه، محیط، نورپردازی، زاویه دوربین، حس صحنه و حرکت پیشنهادی باشد.
+- همه پرامپت‌ها عمودی 9:16، سینمایی، واقع‌گرایانه و بدون نوشته، لوگو یا واترمارک باشند.
+- برای حفظ یکپارچگی، ظاهر سوژه و پالت رنگی در تمام صحنه‌ها ثابت بماند.
+- پرامپت‌ها را طوری بنویس که در ابزارهای تولید تصویر/ویدئو مانند Dreamina قابل استفاده باشند.
+
+۵. تدوین در CapCut:
+- ترتیب چیدن کلیپ‌ها، محل برش‌ها، نوع ترنزیشن، افکت‌های ساده، محل نمایش متن و پیشنهاد تنظیم صدای گوینده و موسیقی را مرحله‌به‌مرحله توضیح بده.
+- تدوین برای فرد مبتدی و با موبایل قابل انجام باشد.
+- موسیقی را فقط از کتابخانه مجاز/قابل استفاده اینستاگرام انتخاب کن؛ نام قطعه ساختگی نده.
+
+۶. بسته انتشار:
+- یک کپشن فارسی جذاب و غیرتکراری.
+- یک CTA مشخص برای کامنت یا ذخیره/ارسال.
+- ۵ تا ۸ هشتگ مرتبط و هدفمند؛ هشتگ نامرتبط اضافه نکن.
+- سه عبارت کوتاه برای کاور پیشنهاد بده.
+
+۷. کنترل صحت:
+- واقعیت‌های علمی، تاریخی و آماری را جعل نکن.
+- اگر موضوع نیاز به اطلاعات به‌روز یا منبع دارد و امکان اطمینان نداری، صریح بنویس «نیازمند راستی‌آزمایی».
+- هیچ نام کتاب، مقاله، پژوهشگر، لینک یا منبعی را حدس نزن یا جعل نکن.
+- واقعیت قطعی را از فرضیه، نظریه یا برداشت شخصی جدا کن.
+- در پایان یک چک‌لیست کوتاه از ادعاهایی که باید پیش از انتشار بررسی شوند بده.
+
+خروجی را کاملاً عملیاتی، بخش‌بندی‌شده و بدون مقدمه و حاشیه بنویس.`;
+ try{
+  const result=await callGemini(prompt);
+  current={id:Date.now(),topic,category:$('category').value,duration:$('duration').value,tone:$('tone').value,storyStyle:$('storyStyle').value,script:result,status:'pending',created:new Date().toLocaleDateString('fa-IR'),engine:'Gemini · بسته کامل تولید محتوا'};
+  $('preview').textContent=result;$('copy').disabled=false;$('save').disabled=false;
+  setAIStatus('بسته کامل تولید محتوا ساخته شد. قبل از انتشار، بخش کنترل صحت را بررسی کن.','ok');
+ }catch(e){setAIStatus('تولید انجام نشد: '+e.message,'err')}
+ finally{btn.disabled=false;btn.textContent='🤖 ساخت با هوش مصنوعی'}
+}
 
 function makeScript(){let topic=$('topic').value.trim();if(!topic){alert('اول موضوع محتوا را بنویس.');return}let cat=$('category').value,tone=$('tone').value,dur=$('duration').value,extra=$('extra').value.trim();let hooks=['فکر می‌کنی این موضوع را می‌شناسی؟ اما یک نکته عجیب وجود دارد...','این واقعیت آن‌قدر شگفت‌انگیز است که شاید باورت نشود!','یک سؤال ساده؛ اما جوابش ذهن تو را درگیر می‌کند...'];let body=cat==='معمای ذهنی'?'قبل از دیدن جواب، چند ثانیه فکر کن و خودت حدس بزن. جواب را در پایان ویدیو آشکار می‌کنیم.':cat==='هوش مصنوعی'?'هوش مصنوعی در این موضوع چه کاری می‌تواند انجام دهد؟ یک نمونه کاربردی و قابل‌فهم را ببین.':'در این ویدیو سراغ '+topic+' می‌رویم و نکته‌ای را بررسی می‌کنیم که معمولاً کمتر به آن توجه می‌شود.';let script='🎬 عنوان: '+topic+'\n⏱ مدت: '+dur+'\n🎭 لحن: '+tone+'\n\n🎙 گویندگی:\n'+hooks[Math.floor(Math.random()*hooks.length)]+'\n\n'+body+'\n\n'+(extra?'نکته مدنظر تو: '+extra+'\n\n':'')+'و در پایان: تو درباره این موضوع چه فکر می‌کنی؟ نظرت را در کامنت‌ها بنویس.\n\n🖼 زمان‌بندی تصویر:\n۰ تا ۳ ثانیه: تصویر مرموز و نمای نزدیک + نمایش سؤال اصلی\n۳ تا ۱۲ ثانیه: نمایش موضوع با حرکت آهسته و متن کوتاه\n۱۲ تا ۲۴ ثانیه: توضیح نکته اصلی با دو یا سه تصویر مرتبط\nپایان: نتیجه‌گیری و دعوت به تعامل\n\n🤖 پرامپت تصویری پیشنهادی:\nA cinematic, mysterious, ultra-detailed visual about '+topic+', dark black and deep purple neon lighting, vertical 9:16 composition, no text, dramatic atmosphere.\n\n✍️ کپشن پیشنهادی:\n'+topic+'؛ چیزی که ارزش فکر کردن دارد! ✨\nبرای دانستنی‌های بیشتر NEOROVO را دنبال کن.\n\n#دانستنی #حقایق_جالب #هوش_مصنوعی #NEOROVO\n\n⚠️ راستی‌آزمایی: قبل از انتشار، ادعاها و آمار را با منابع معتبر بررسی و منبع را ثبت کن.';current={id:Date.now(),topic,category:cat,duration:dur,tone,script,status:'pending',created:new Date().toLocaleDateString('fa-IR')};$('preview').textContent=script;$('copy').disabled=false;$('save').disabled=false}
 function persist(){localStorage.setItem('neorovo_drafts',JSON.stringify(drafts));render()}
