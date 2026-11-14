@@ -12,6 +12,10 @@
 
 /* NEOROVO growth workspace */
 .module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.metric{background:#100c19;border:1px solid var(--line);border-radius:12px;padding:12px}.metric span{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;font-size:21px;margin-top:5px}.data-table{width:100%;border-collapse:collapse;font-size:11px;min-width:620px}.data-table th,.data-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.data-table th{color:#d8c5ee;font-weight:700}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:12px}.insight{background:#1b1428;border:1px solid #49345f;border-radius:12px;padding:13px;font-size:12px;line-height:2;margin-top:12px}.mini-muted{color:var(--muted);font-size:10px;line-height:1.9}.plan-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);background:#100c19;padding:12px;border-radius:12px;margin-top:9px}.plan-item strong{font-size:12px}.plan-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}@media(max-width:800px){.module-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:430px){.module-grid{gap:7px}.metric{padding:10px}.metric strong{font-size:18px}.plan-item{align-items:flex-start;flex-direction:column}}
+.monthbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 10px}.monthbar strong{font-size:14px}.monthnav{display:flex;gap:6px}.monthnav button{padding:7px 10px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.cal-weekday{text-align:center;color:var(--muted);font-size:10px;padding:7px 0}.cal-day{min-height:86px;background:#100c19;border:1px solid var(--line);border-radius:10px;padding:6px;min-width:0;cursor:pointer}.cal-day.outside{opacity:.42}.cal-day.today{border-color:var(--purple);box-shadow:inset 0 0 0 1px #9b5cff55}.cal-day.selected{background:#291a3d;border-color:#b27aff}.cal-daynum{font-size:11px;color:#e6d8f5;margin-bottom:5px}.cal-event{display:block;font-size:9px;line-height:1.5;padding:3px 4px;border-radius:5px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#34234a;color:#e6d3ff}.cal-event.build{background:#45351b;color:#f4d995}.cal-event.ready{background:#173c32;color:#9aefd0}.cal-event.published{background:#26334b;color:#b9d2ff}.cal-more{font-size:9px;color:var(--muted);margin-top:3px}.calendar-legend{display:flex;gap:12px;flex-wrap:wrap;margin:9px 0;color:var(--muted);font-size:10px}.day-detail{border:1px solid var(--line);background:#100c19;border-radius:12px;padding:12px;margin:10px 0}.day-detail h4{margin:0 0 8px;font-size:12px}.plan-buttons{display:flex;gap:6px;flex-wrap:wrap}.plan-buttons .btn{padding:7px 10px}
+@media(max-width:430px){.cal-day{min-height:65px;padding:4px}.cal-event{font-size:8px;padding:2px}.monthnav button{font-size:9px;padding:6px}.monthbar strong{font-size:12px}}
+
 </style></head>
 <body><main class="shell">
 <header class="top"><div class="brand"><div class="logo">N</div><div><h1>NEOROVO</h1><small>CONTENT STUDIO · نسخه آزمایشی</small></div></div><span class="tag">✦ متفاوت ببین، شگفت‌زده شو!</span></header>
@@ -82,7 +86,11 @@
   <div class="field"><label>وضعیت</label><select id="planStatus"><option>ایده</option><option>در حال ساخت</option><option>آماده انتشار</option><option>منتشر شد</option></select></div>
  </div>
  <div class="actions"><button class="btn primary" id="addPlan">افزودن به تقویم</button></div>
- <div id="planList"></div>
+ <div class="monthbar"><strong id="calendarMonthLabel">تقویم ماهانه</strong><div class="monthnav"><button class="btn soft" id="prevMonth" type="button">ماه قبل</button><button class="btn soft" id="todayMonth" type="button">امروز</button><button class="btn soft" id="nextMonth" type="button">ماه بعد</button></div></div>
+ <div class="calendar-grid" id="calendarGrid"></div>
+ <div class="calendar-legend"><span>🟣 ایده</span><span>🟠 در حال ساخت</span><span>🟢 آماده انتشار</span><span>🔵 منتشر شد</span></div>
+ <div id="selectedDayPlans"></div>
+ <h3 style="margin-top:20px">فهرست همه برنامه‌ها</h3><div id="planList"></div>
 </section>\n<section class="card" id="backupSection" style="margin-top:16px">
  <div class="drafthead"><h3>🛡 پشتیبان‌گیری و بازیابی اطلاعات</h3><span class="tag">محافظت از داده‌ها</span></div>
  <p class="hint">برای جلوگیری از پاک‌شدن اطلاعات، هر چند وقت یک‌بار از پیش‌نویس‌ها، آمار ریلزها و تقویم محتوا یک فایل پشتیبان بگیر. فایل فقط روی دستگاه خودت ذخیره می‌شود.</p>
@@ -153,9 +161,54 @@ function renderAnalytics(){
 function deleteAnalytics(id){if(confirm('این ردیف آمار حذف شود؟')){analytics=analytics.filter(x=>x.id!==id);saveAnalytics()}}
 $('saveStats').onclick=()=>{const title=$('statTitle').value.trim();if(!title){alert('عنوان ریلز را وارد کن.');return}const record={id:String(Date.now()),title,date:$('statDate').value||todayISO(),category:$('statCategory').value,views:num('statViews'),reach:num('statReach'),likes:num('statLikes'),comments:num('statComments'),saves:num('statSaves'),shares:num('statShares'),profile:num('statProfile'),follows:num('statFollows'),note:$('statNote').value.trim()};analytics.push(record);saveAnalytics();alert('آمار ثبت شد. این اطلاعات فقط در همین مرورگر ذخیره شده است.');};
 $('resetStats').onclick=()=>{['statTitle','statDate','statViews','statReach','statLikes','statComments','statSaves','statShares','statProfile','statFollows','statNote'].forEach(id=>$(id).value='');$('statDate').value=todayISO();};
-function renderPlans(){const el=$('planList');el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><button class="btn danger" onclick="deletePlan(\''+p.id+'\')">حذف</button></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>'}
-function deletePlan(id){if(confirm('این برنامه از تقویم حذف شود؟')){plans=plans.filter(p=>p.id!==id);localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}}
-$('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){alert('موضوع محتوا را بنویس.');return}plans.push({id:String(Date.now()),title,date:$('planDate').value||todayISO(),category:$('planCategory').value,status:$('planStatus').value});localStorage.setItem('neorovo_plans',JSON.stringify(plans));$('planTitle').value='';renderPlans()};
+let calendarCursor=new Date();calendarCursor.setDate(1);let selectedCalendarDate=todayISO();
+function savePlans(){localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}
+function isoLocal(y,m,d){const dt=new Date(y,m,d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR',{weekday:'long',day:'numeric',month:'long'}).format(d)}
+function monthLabel(d){return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'long'}).format(d)}
+function renderCalendar(){
+ const grid=$('calendarGrid');if(!grid)return;
+ $('calendarMonthLabel').textContent=monthLabel(calendarCursor);
+ const year=calendarCursor.getFullYear(),month=calendarCursor.getMonth();
+ const first=new Date(year,month,1),lastDay=new Date(year,month+1,0).getDate();
+ const offset=(first.getDay()+1)%7,totalCells=Math.ceil((offset+lastDay)/7)*7;
+ const weekdays=['ش','ی','د','س','چ','پ','ج'];
+ let html=weekdays.map(w=>'<div class="cal-weekday">'+w+'</div>').join('');
+ const today=todayISO();
+ for(let i=0;i<totalCells;i++){
+  const day=i-offset+1,date=isoLocal(year,month,day),inside=day>=1&&day<=lastDay;
+  const items=inside?plans.filter(p=>p.date===date):[];
+  const classes=['cal-day',inside?'':'outside',date===today?'today':'',date===selectedCalendarDate?'selected':''].filter(Boolean).join(' ');
+  html+='<div class="'+classes+'" data-date="'+date+'"><div class="cal-daynum">'+(inside?fa(day):'')+'</div>'+items.slice(0,2).map(p=>'<span class="cal-event '+(p.status==='در حال ساخت'?'build':p.status==='آماده انتشار'?'ready':p.status==='منتشر شد'?'published':'')+'">'+esc(p.title)+'</span>').join('')+(items.length>2?'<div class="cal-more">+'+fa(items.length-2)+' مورد دیگر</div>':'')+'</div>';
+ }
+ grid.innerHTML=html;
+ grid.querySelectorAll('.cal-day').forEach(cell=>cell.onclick=()=>{selectedCalendarDate=cell.dataset.date;$('planDate').value=selectedCalendarDate;renderCalendar();renderSelectedDay()});
+ renderSelectedDay();
+}
+function renderSelectedDay(){
+ const el=$('selectedDayPlans');if(!el)return;
+ const items=plans.filter(p=>p.date===selectedCalendarDate);
+ el.innerHTML='<div class="day-detail"><h4>برنامه‌های '+faDateLabel(selectedCalendarDate)+'</h4>'+(items.length?items.map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" onclick="editPlan(\\''+p.id+'\\')">ویرایش / جابه‌جایی</button><button class="btn danger" onclick="deletePlan(\\''+p.id+'\\')">حذف</button></div></div>').join(''):'<div class="empty">برای این روز برنامه‌ای ثبت نشده. با انتخاب روز، تاریخ فرم بالا تنظیم می‌شود.</div>')+'</div>';
+}
+function renderPlans(){
+ const el=$('planList');
+ el.innerHTML=plans.length?plans.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(p=>'<div class="plan-item"><div><strong>'+esc(p.title)+'</strong><small>'+esc(p.date)+' · '+esc(p.category)+' · '+esc(p.status)+'</small></div><div class="plan-buttons"><button class="btn soft" onclick="editPlan(\\''+p.id+'\\')">ویرایش</button><button class="btn danger" onclick="deletePlan(\\''+p.id+'\\')">حذف</button></div></div>').join(''):'<div class="empty">هنوز برنامه‌ای ثبت نشده است.</div>';
+ renderCalendar();
+}
+function editPlan(id){
+ const p=plans.find(x=>x.id===id);if(!p)return;
+ const title=prompt('عنوان محتوا:',p.title);if(title===null)return;if(!title.trim()){alert('عنوان نمی‌تواند خالی باشد.');return}
+ const date=prompt('تاریخ جدید با فرمت میلادی YYYY-MM-DD:',p.date);if(date===null)return;
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||Number.isNaN(new Date(date+'T12:00:00').getTime())){alert('تاریخ معتبر نیست. نمونه: 2026-11-20');return}
+ const status=prompt('وضعیت را دقیقاً یکی از این موارد وارد کن: ایده، در حال ساخت، آماده انتشار، منتشر شد',p.status);if(status===null)return;
+ if(!['ایده','در حال ساخت','آماده انتشار','منتشر شد'].includes(status)){alert('وضعیت واردشده معتبر نیست.');return}
+ p.title=title.trim();p.date=date;p.status=status;selectedCalendarDate=date;calendarCursor=new Date(date+'T12:00:00');calendarCursor.setDate(1);$('planDate').value=date;savePlans();
+}
+function deletePlan(id){if(confirm('این برنامه از تقویم حذف شود؟')){plans=plans.filter(p=>p.id!==id);savePlans()}}
+$('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){alert('موضوع محتوا را بنویس.');return}const date=$('planDate').value||todayISO();plans.push({id:String(Date.now()),title,date,category:$('planCategory').value,status:$('planStatus').value});selectedCalendarDate=date;calendarCursor=new Date(date+'T12:00:00');calendarCursor.setDate(1);$('planTitle').value='';localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()};
+$('prevMonth').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar()};
+$('nextMonth').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar()};
+$('todayMonth').onclick=()=>{calendarCursor=new Date();calendarCursor.setDate(1);selectedCalendarDate=todayISO();$('planDate').value=selectedCalendarDate;renderCalendar()};
 renderAnalytics();renderPlans();
 
 /* Local data backup and restore */
