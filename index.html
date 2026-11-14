@@ -27,6 +27,27 @@
 <header class="top"><div class="brand"><div class="logo">N</div><div><h1>NEOROVO</h1><small>CONTENT STUDIO · نسخه آزمایشی</small></div></div><span class="tag">✦ متفاوت ببین، شگفت‌زده شو!</span></header>
 <section class="hero"><h2>استودیوی هوشمند محتوای تو</h2><p>ایده‌پردازی، سناریونویسی و مدیریت پیش‌نویس‌های ریلز در یک محیط ساده.<br><span class="slogan">هر محتوا قبل از انتشار، منتظر تأیید تو می‌ماند.</span></p></section>
 <div class="notice">نسخه MVP آزمایشی است. اطلاعات فقط در همین مرورگر ذخیره می‌شود؛ هنوز به اینستاگرام متصل نیست و چیزی را منتشر نمی‌کند. داده نمونه واقعی نیست.</div>
+<section class="card" id="instagramConnect" style="margin-bottom:16px">
+ <div class="drafthead"><h3>📲 مرکز اتصال رسمی اینستاگرام</h3><span class="tag">آماده‌سازی اتصال</span></div>
+ <div class="insight" style="margin-top:8px"><strong>وضعیت: هنوز متصل نیست</strong><br>این نسخه فعلاً رابط کاربری GitHub Pages است. برای اتصال واقعی، باید ورود امن Meta (OAuth) و یک سرویس سمت سرور اضافه شود؛ توکن و رمز برنامه نباید داخل مرورگر یا مخزن عمومی قرار بگیرند.</div>
+ <div class="fields" style="margin-top:12px">
+  <div class="field"><label>نوع حساب اینستاگرام</label><select id="igAccountType"><option value="">هنوز مشخص نکرده‌ام</option><option>Creator (سازنده محتوا)</option><option>Business (تجاری)</option><option>Personal (شخصی)</option></select></div>
+  <div class="field"><label>وضعیت راه‌اندازی Meta</label><input value="برنامه Meta هنوز ساخته/متصل نشده" readonly></div>
+ </div>
+ <div class="module-grid">
+  <div class="metric"><span>انتشار ریلز و پست</span><strong>قابل پیاده‌سازی</strong></div>
+  <div class="metric"><span>دریافت آمار و Insights</span><strong>قابل پیاده‌سازی</strong></div>
+  <div class="metric"><span>مدیریت کامنت‌ها</span><strong>با مجوز رسمی</strong></div>
+  <div class="metric"><span>مدیریت دایرکت</span><strong>با محدودیت Meta</strong></div>
+ </div>
+ <p class="hint">مسیر فنی: ورود رسمی Instagram/Meta → دریافت مجوزهای لازم → نگهداری امن توکن در سرور → اتصال پنل به API. حساب باید حرفه‌ای (Creator یا Business) باشد. برای پاسخ خودکار به پیام‌ها باید محدودیت پنجره پاسخ و امکان ارجاع به اپراتور انسانی رعایت شود.</p>
+ <div class="actions">
+  <a class="btn primary" href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">ساخت برنامه در Meta Developers ↗</a>
+  <a class="btn soft" href="https://developers.facebook.com/docs/instagram/platform/" target="_blank" rel="noopener">مستندات رسمی Instagram API ↗</a>
+  <a class="btn soft" href="https://developers.facebook.com/documentation/business-messaging/instagram-messaging/overview" target="_blank" rel="noopener">قوانین و محدودیت دایرکت ↗</a>
+ </div>
+ <p class="hint">امنیت: رمز اینستاگرام، Access Token یا App Secret را در این صفحه یا در چت وارد نکن. اتصال واقعی را فقط با صفحه ورود رسمی Meta و ذخیره امن سمت سرور انجام می‌دهیم. ربات لایک/فالو/آنفالو انبوه یا ارسال اسپم هم در نرم‌افزار قرار نمی‌دهیم.</p>
+</section>
 <section class="card" style="margin-bottom:16px">
 <div class="drafthead"><h3>🤖 اتصال هوش مصنوعی Gemini</h3><span class="tag">طرح رایگان با محدودیت</span></div>
 <p class="hint">برای تولید سناریوی واقعی با هوش مصنوعی، کلید رایگان Google AI Studio را خودت در همین مرورگر وارد کن. کلید در کد سایت یا مخزن عمومی ذخیره نمی‌شود و فقط تا پایان نشست همین تب در حافظه مرورگر می‌ماند.</p>
