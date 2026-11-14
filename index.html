@@ -32,6 +32,9 @@
 .ig-progress{height:9px;border-radius:20px;background:#2a2037;overflow:hidden;margin-top:14px}
 .ig-progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--pink));transition:width .2s}
 
+
+.ig-live-actions{display:flex;gap:8px;flex-wrap:wrap}
+#igLiveStatus{white-space:normal;line-height:1.8;overflow-wrap:anywhere}
 </style></head>
 <body><main class="shell">
 <header class="top"><div class="brand"><div class="logo">N</div><div><h1>NEOROVO</h1><small>CONTENT STUDIO · نسخه آزمایشی</small></div></div><span class="tag">✦ متفاوت ببین، شگفت‌زده شو!</span></header>
@@ -80,10 +83,20 @@
   <p id="igProgressText" class="mini-muted">۰ از ۶ مرحله تکمیل شده است.</p>
  </div>
  <div class="ig-step">
-  <h4>۴) وضعیت فنی و امنیت</h4>
-  <div class="insight"><strong>اتصال واقعی هنوز ساخته نشده است.</strong><br>GitHub Pages فقط رابط کاربری است و به‌تنهایی نمی‌تواند App Secret یا Access Token را امن نگه دارد. مرحله بعد، ساخت OAuth callback و ذخیره رمزنگاری‌شده توکن در یک سرویس سمت سرور است. تا آن زمان هیچ دکمه‌ای نباید ادعای اتصال موفق کند.</div>
-  <p class="hint">مجوزهای موردنیاز را فقط به‌اندازه قابلیت‌هایی که واقعاً فعال می‌کنیم درخواست می‌کنیم؛ مانند دسترسی پایه، انتشار محتوا، Insights، مدیریت کامنت و پیام. دسترسی‌های اضافی و قابلیت‌های اسپم، فالو/آنفالو یا لایک انبوه در برنامه قرار نمی‌گیرند.</p>
-  <p class="mini-muted">امنیت: رمز اینستاگرام، App Secret و Access Token را در این پنل، چت یا مخزن عمومی وارد نکن. برای انتشار خودکار نیز محتوا باید پیش از ارسال، با تأیید تو مشخص شود.</p>
+  <h4>۴) راه‌اندازی سرویس اتصال</h4>
+  <p class="hint">کد سمت سرور Cloudflare Worker آماده شده اما هنوز روی حساب Cloudflare تو مستقر نشده است. بعد از استقرار Worker و تنظیم Secretها، نشانی آن را اینجا وارد کن. این نشانی عمومی است؛ کد اتصال را فقط برای شروع مجوزدهی وارد کن و هرگز App Secret یا Access Token را اینجا ننویس.</p>
+  <div class="fields">
+   <div class="field full"><label for="igWorkerUrl">نشانی Worker (بعد از Deploy)</label><input id="igWorkerUrl" type="url" placeholder="https://neorovo-instagram-connector.example.workers.dev"></div>
+   <div class="field"><label for="igSetupCode">کد مدیریتی اتصال</label><input id="igSetupCode" type="password" autocomplete="off" placeholder="کد تنظیم‌شده در Cloudflare"></div>
+  </div>
+  <div class="actions"><button class="btn primary" id="igConnectBtn">اتصال امن به اینستاگرام</button><button class="btn soft" id="igStatusBtn">بررسی وضعیت اتصال</button><button class="btn danger" id="igDisconnectBtn">قطع اتصال</button></div>
+  <div id="igLiveStatus" class="ai-status">وضعیت: سرویس هنوز روی Cloudflare مستقر نشده است.</div>
+  <p class="mini-muted">برای راهنمای نصب، فایل worker/README.md در مخزن را ببین. رمز مدیریتی فقط برای شروع/قطع اتصال استفاده می‌شود؛ توکن اینستاگرام هرگز به مرورگر برگردانده نمی‌شود.</p>
+ </div>
+ <div class="ig-step">
+  <h4>محدودیت‌های نسخه فعلی</h4>
+  <p class="hint">پس از Deploy و تکمیل تنظیمات Meta، این نسخه می‌تواند OAuth را آغاز کند، پروفایل پایه را بخواند و وضعیت اتصال را نشان دهد. انتشار محتوا، Insights، کامنت و دایرکت هنوز در این نسخه پیاده‌سازی نشده‌اند و به مجوزها، بررسی برنامه و توسعه API جداگانه نیاز دارند. هیچ قابلیت لایک/فالو/آنفالو انبوه یا ارسال اسپم اضافه نمی‌شود.</p>
+  <div class="insight"><strong>امنیت:</strong> رمز اینستاگرام، App Secret و Access Token را در این پنل، چت یا مخزن عمومی وارد نکن. توکن در Worker با AES-GCM رمزنگاری و در KV نگهداری می‌شود. کلید رمزنگاری و سایر Secretها فقط باید در تنظیمات Cloudflare باشند.</div>
  </div>
 </section>
 <section class="card" style="margin-bottom:16px">
@@ -466,7 +479,7 @@ $('importBackup').onchange=async(event)=>{
 };
 
 
-/* Instagram setup checklist: local progress only; no OAuth is performed here */
+/* Instagram setup checklist: local progress only */
 (()=>{
  const account=$('igAccountType'),advice=$('igAccountAdvice'),checks=[...document.querySelectorAll('[data-ig-check]')];
  const accountKey='neorovo_ig_account_type',checkKey='neorovo_ig_setup_checks';
@@ -501,4 +514,49 @@ $('importBackup').onchange=async(event)=>{
  renderChecks();
 })();
 
-</script></body></html>
+
+/* Cloudflare Worker connector UI */
+(()=>{
+ const $id=id=>document.getElementById(id);
+ const urlInput=$id('igWorkerUrl'),codeInput=$id('igSetupCode'),status=$id('igLiveStatus');
+ const connect=$id('igConnectBtn'),check=$id('igStatusBtn'),disconnect=$id('igDisconnectBtn');
+ if(!urlInput||!codeInput||!status||!connect)return;
+ const urlKey='neorovo_ig_worker_url';
+ urlInput.value=localStorage.getItem(urlKey)||'';
+ const cleanBase=()=>urlInput.value.trim().replace(/\\/+$/,'');
+ const setStatus=(message,kind='')=>{status.textContent=message;status.className='ai-status '+kind};
+ urlInput.addEventListener('change',()=>{const v=cleanBase();urlInput.value=v;localStorage.setItem(urlKey,v)});
+ async function api(path,options={}){
+  const base=cleanBase();if(!base)throw new Error('ابتدا نشانی Cloudflare Worker را وارد کن.');
+  if(!/^https:\\/\\//i.test(base))throw new Error('نشانی Worker باید با https:// شروع شود.');
+  const res=await fetch(base+path,{...options,headers:{'content-type':'application/json',...(options.headers||{})}});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||('خطای سرویس: '+res.status));
+  return data;
+ }
+ async function refresh(){
+  setStatus('در حال بررسی سرویس و وضعیت اتصال…');
+  try{
+   const data=await api('/api/status');
+   if(data.connected){setStatus('متصل به @'+(data.profile?.username||'حساب حرفه‌ای')+' · اعتبار توکن تا '+new Date(data.expiresAt).toLocaleDateString('fa-IR'),'ok');}
+   else setStatus('سرویس در دسترس است؛ هنوز حساب اینستاگرام متصل نشده است.','');
+  }catch(e){setStatus('وضعیت بررسی نشد: '+e.message,'err')}
+ }
+ connect.addEventListener('click',async()=>{
+  const setupCode=codeInput.value.trim();if(!setupCode){setStatus('کد مدیریتی Cloudflare را وارد کن.','err');return}
+  connect.disabled=true;setStatus('در حال آماده‌سازی ورود امن Meta…');
+  try{const data=await api('/api/connect/start',{method:'POST',body:JSON.stringify({setupCode})});if(!data.authorizeUrl)throw new Error('نشانی ورود از Worker دریافت نشد.');window.location.assign(data.authorizeUrl)}
+  catch(e){setStatus('شروع اتصال انجام نشد: '+e.message,'err');connect.disabled=false}
+ });
+ if(check)check.addEventListener('click',refresh);
+ if(disconnect)disconnect.addEventListener('click',async()=>{
+  const setupCode=codeInput.value.trim();if(!setupCode){setStatus('برای قطع اتصال، کد مدیریتی را وارد کن.','err');return}
+  if(!confirm('توکن ذخیره‌شده اینستاگرام از سرویس حذف شود؟'))return;
+  try{await api('/api/disconnect',{method:'POST',body:JSON.stringify({setupCode})});setStatus('توکن از سرویس حذف شد و حساب قطع اتصال شد.','ok')}
+  catch(e){setStatus('قطع اتصال انجام نشد: '+e.message,'err')}
+ });
+ const params=new URLSearchParams(location.search);
+ if(params.get('ig_connect')==='success'){setStatus('ورود Meta موفق بود؛ در حال بررسی حساب متصل‌شده…','ok');refresh();history.replaceState({},document.title,location.pathname+location.hash)}
+ else if(params.get('ig_connect')==='failed'){setStatus('اتصال کامل نشد. وضعیت تنظیمات Meta، نشانی بازگشت و مجوزها را بررسی کن.','err');history.replaceState({},document.title,location.pathname+location.hash)}
+})();
+\n</script></body></html>
