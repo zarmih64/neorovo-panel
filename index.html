@@ -14,6 +14,12 @@
 .module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.metric{background:#100c19;border:1px solid var(--line);border-radius:12px;padding:12px}.metric span{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;font-size:21px;margin-top:5px}.data-table{width:100%;border-collapse:collapse;font-size:11px;min-width:620px}.data-table th,.data-table td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.data-table th{color:#d8c5ee;font-weight:700}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:12px}.insight{background:#1b1428;border:1px solid #49345f;border-radius:12px;padding:13px;font-size:12px;line-height:2;margin-top:12px}.mini-muted{color:var(--muted);font-size:10px;line-height:1.9}.plan-item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);background:#100c19;padding:12px;border-radius:12px;margin-top:9px}.plan-item strong{font-size:12px}.plan-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}@media(max-width:800px){.module-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:430px){.module-grid{gap:7px}.metric{padding:10px}.metric strong{font-size:18px}.plan-item{align-items:flex-start;flex-direction:column}}
 .monthbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 10px}.monthbar strong{font-size:14px}.monthnav{display:flex;gap:6px}.monthnav button{padding:7px 10px}
 .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.cal-weekday{text-align:center;color:var(--muted);font-size:10px;padding:7px 0}.cal-day{min-height:86px;background:#100c19;border:1px solid var(--line);border-radius:10px;padding:6px;min-width:0;cursor:pointer}.cal-day.outside{opacity:.42}.cal-day.today{border-color:var(--purple);box-shadow:inset 0 0 0 1px #9b5cff55}.cal-day.selected{background:#291a3d;border-color:#b27aff}.cal-daynum{font-size:11px;color:#e6d8f5;margin-bottom:5px}.cal-event{display:block;font-size:9px;line-height:1.5;padding:3px 4px;border-radius:5px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#34234a;color:#e6d3ff}.cal-event.build{background:#45351b;color:#f4d995}.cal-event.ready{background:#173c32;color:#9aefd0}.cal-event.published{background:#26334b;color:#b9d2ff}.cal-more{font-size:9px;color:var(--muted);margin-top:3px}.calendar-legend{display:flex;gap:12px;flex-wrap:wrap;margin:9px 0;color:var(--muted);font-size:10px}.day-detail{border:1px solid var(--line);background:#100c19;border-radius:12px;padding:12px;margin:10px 0}.day-detail h4{margin:0 0 8px;font-size:12px}.plan-buttons{display:flex;gap:6px;flex-wrap:wrap}.plan-buttons .btn{padding:7px 10px}
+.report-bar-row{display:grid;grid-template-columns:minmax(80px,1fr) minmax(90px,2fr) 70px;gap:9px;align-items:center;margin:10px 0;font-size:10px}
+.report-bar-track{height:11px;background:#261c35;border-radius:20px;overflow:hidden}
+.report-bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--purple),var(--pink))}
+.report-top{display:grid;gap:8px}.report-top-item{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line);background:#151020;border-radius:10px;padding:10px;font-size:11px}
+@media(max-width:430px){.report-bar-row{grid-template-columns:75px minmax(55px,1fr) 55px;gap:6px;font-size:9px}.report-top-item{font-size:10px}}
+
 @media(max-width:430px){.cal-day{min-height:65px;padding:4px}.cal-event{font-size:8px;padding:2px}.monthnav button{font-size:9px;padding:6px}.monthbar strong{font-size:12px}}
 
 </style></head>
@@ -74,6 +80,27 @@
  <div class="actions"><button class="btn primary" id="saveStats">ثبت آمار ریلز</button><button class="btn soft" id="resetStats">پاک‌کردن فرم آمار</button></div>
  <div id="analyticsRows"></div>
  <div class="insight" id="smartInsight">با ثبت آمار چند ریلز، پنل می‌تواند مقایسه اولیه و پیشنهاد موضوع بعدی را نشان دهد.</div>
+ <div class="card" style="margin-top:14px;background:#100c19">
+  <div class="drafthead"><h3>📈 گزارش تحلیلی عملکرد</h3><span class="tag">تحلیل داده‌های ثبت‌شده</span></div>
+  <div class="field" style="max-width:260px;margin:10px 0"><label for="reportPeriod">بازه گزارش</label><select id="reportPeriod"><option value="all">تمام داده‌ها</option><option value="7">۷ روز اخیر</option><option value="30" selected>۳۰ روز اخیر</option><option value="90">۹۰ روز اخیر</option></select></div>
+  <div class="module-grid">
+   <div class="metric"><span>مجموع تعامل‌ها</span><strong id="reportInteractions">۰</strong></div>
+   <div class="metric"><span>میانگین بازدید هر ریلز</span><strong id="reportAvgViews">۰</strong></div>
+   <div class="metric"><span>نرخ تعامل بر اساس دسترسی</span><strong id="reportEngagement">—</strong></div>
+   <div class="metric"><span>نرخ تبدیل دسترسی به فالو</span><strong id="reportFollowRate">—</strong></div>
+  </div>
+  <div class="module-grid">
+   <div class="metric"><span>نرخ ذخیره بر اساس دسترسی</span><strong id="reportSaveRate">—</strong></div>
+   <div class="metric"><span>نرخ اشتراک‌گذاری بر اساس دسترسی</span><strong id="reportShareRate">—</strong></div>
+   <div class="metric"><span>مجموع بازدید پروفایل</span><strong id="reportProfile">۰</strong></div>
+   <div class="metric"><span>تعداد ریلز در این بازه</span><strong id="reportCount">۰</strong></div>
+  </div>
+  <h3 style="margin-top:20px">عملکرد دسته‌بندی‌ها</h3>
+  <div id="categoryPerformance"><div class="empty">برای نمایش مقایسه، آمار ثبت کن.</div></div>
+  <h3 style="margin-top:20px">۳ ریلز برتر بر اساس بازدید</h3>
+  <div id="topReels"><div class="empty">هنوز داده‌ای برای رتبه‌بندی وجود ندارد.</div></div>
+  <p class="mini-muted">فرمول‌ها: نرخ تعامل = (لایک + کامنت + ذخیره + اشتراک‌گذاری) ÷ مجموع دسترسی × ۱۰۰. نرخ تبدیل فالو = فالوهای منتسب ÷ مجموع دسترسی × ۱۰۰. نرخ‌ها فقط با ثبت عدد دسترسی محاسبه می‌شوند. بازه زمانی بر اساس «تاریخ ثبت آمار» است.</p>
+ </div>
  <p class="mini-muted">نکته: «بازدید / Plays» با «دسترسی / Accounts reached» یکی نیست. نرخ تعامل فقط وقتی محاسبه می‌شود که عدد Reach را وارد کرده باشی. داده کم برای نتیجه‌گیری قطعی کافی نیست.</p>
 </section>
 <section class="card" id="calendarSection" style="margin-top:16px">
@@ -151,12 +178,43 @@ function renderAnalytics(){
  const rows=$('analyticsRows');
  rows.innerHTML=analytics.length?'<div class="table-wrap"><table class="data-table"><thead><tr><th>ریلز</th><th>دسته</th><th>تاریخ ثبت</th><th>بازدید</th><th>دسترسی</th><th>لایک</th><th>کامنت</th><th>ذخیره</th><th>اشتراک</th><th>تعامل / Reach</th><th>عملیات</th></tr></thead><tbody>'+analytics.slice().reverse().map(x=>{const interactions=x.likes+x.comments+x.saves+x.shares;const rate=x.reach>0?(interactions/x.reach*100).toFixed(1)+'٪':'—';return '<tr><td>'+esc(x.title)+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.date)+'</td><td>'+fa(x.views)+'</td><td>'+fa(x.reach||0)+'</td><td>'+fa(x.likes)+'</td><td>'+fa(x.comments)+'</td><td>'+fa(x.saves)+'</td><td>'+fa(x.shares)+'</td><td>'+rate+'</td><td><button class="btn danger" onclick="deleteAnalytics(\''+x.id+'\')">حذف</button></td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">هنوز آماری ثبت نشده است.</div>';
  const insight=$('smartInsight');
- if(!analytics.length){insight.textContent='با ثبت آمار چند ریلز، مقایسه و پیشنهاد موضوع بعدی اینجا نمایش داده می‌شود.';return}
+ if(!analytics.length){insight.textContent='با ثبت آمار چند ریلز، مقایسه و پیشنهاد موضوع بعدی اینجا نمایش داده می‌شود.';renderReport();return}
  const best=analytics.slice().sort((a,b)=>b.views-a.views)[0];
  let message='بیشترین بازدید ثبت‌شده مربوط به «'+best.title+'» با '+fa(best.views)+' بازدید است. ';
  if(analytics.length===1)message+='فعلاً فقط یک ریلز ثبت شده؛ برای تشخیص سلیقه مخاطب باید چند محتوای دیگر هم منتشر و مقایسه شود.';
  else {const byCat={};analytics.forEach(x=>{(byCat[x.category]??=[]).push(x.views)});const cats=Object.keys(byCat).map(k=>({k,avg:byCat[k].reduce((a,b)=>a+b,0)/byCat[k].length,n:byCat[k].length})).sort((a,b)=>b.avg-a.avg);message+='میانگین بازدید دسته «'+cats[0].k+'» در داده‌های ثبت‌شده بیشتر است ('+fa(Math.round(cats[0].avg))+' بازدید در هر ریلز، بر پایه '+fa(cats[0].n)+' مورد). این فقط نشانه اولیه است، نه نتیجه قطعی.'}
  insight.textContent=message;
+ renderReport();
+}
+function renderReport(){
+ const period=$('reportPeriod')?$('reportPeriod').value:'30';
+ const now=new Date();now.setHours(23,59,59,999);
+ const filtered=analytics.filter(x=>{
+  if(period==='all')return true;
+  const d=new Date((x.date||'')+'T12:00:00');
+  if(Number.isNaN(d.getTime()))return false;
+  const start=new Date(now);start.setDate(start.getDate()-Number(period)+1);start.setHours(0,0,0,0);
+  return d>=start&&d<=now;
+ });
+ const sum=k=>filtered.reduce((s,x)=>s+(Number(x[k])||0),0);
+ const views=sum('views'),reach=sum('reach'),likes=sum('likes'),comments=sum('comments'),saves=sum('saves'),shares=sum('shares'),follows=sum('follows'),profile=sum('profile');
+ const interactions=likes+comments+saves+shares;
+ const pct=(n,d)=>d>0?(n/d*100).toFixed(1)+'٪':'—';
+ $('reportInteractions').textContent=fa(interactions);
+ $('reportAvgViews').textContent=fa(filtered.length?Math.round(views/filtered.length):0);
+ $('reportEngagement').textContent=pct(interactions,reach);
+ $('reportFollowRate').textContent=pct(follows,reach);
+ $('reportSaveRate').textContent=pct(saves,reach);
+ $('reportShareRate').textContent=pct(shares,reach);
+ $('reportProfile').textContent=fa(profile);
+ $('reportCount').textContent=fa(filtered.length);
+ const grouped={};
+ filtered.forEach(x=>{const k=x.category||'بدون دسته';if(!grouped[k])grouped[k]={views:0,count:0};grouped[k].views+=Number(x.views)||0;grouped[k].count++});
+ const categories=Object.entries(grouped).map(([name,v])=>({name,avg:v.views/v.count,count:v.count})).sort((a,b)=>b.avg-a.avg);
+ const max=categories.length?Math.max(...categories.map(x=>x.avg),1):1;
+ $('categoryPerformance').innerHTML=categories.length?categories.map(x=>'<div class="report-bar-row"><span>'+esc(x.name)+'</span><div class="report-bar-track"><div class="report-bar-fill" style="width:'+Math.max(2,x.avg/max*100)+'%"></div></div><span>'+fa(Math.round(x.avg))+' بازدید</span></div><div class="mini-muted">تعداد ریلز: '+fa(x.count)+'</div>').join(''):'<div class="empty">در این بازه آماری ثبت نشده است.</div>';
+ const top=filtered.slice().sort((a,b)=>(Number(b.views)||0)-(Number(a.views)||0)).slice(0,3);
+ $('topReels').innerHTML=top.length?'<div class="report-top">'+top.map((x,i)=>'<div class="report-top-item"><span>'+fa(i+1)+'. '+esc(x.title)+'</span><strong>'+fa(Number(x.views)||0)+' بازدید</strong></div>').join('')+'</div>':'<div class="empty">در این بازه آماری ثبت نشده است.</div>';
 }
 function deleteAnalytics(id){if(confirm('این ردیف آمار حذف شود؟')){analytics=analytics.filter(x=>x.id!==id);saveAnalytics()}}
 $('saveStats').onclick=()=>{const title=$('statTitle').value.trim();if(!title){alert('عنوان ریلز را وارد کن.');return}const record={id:String(Date.now()),title,date:$('statDate').value||todayISO(),category:$('statCategory').value,views:num('statViews'),reach:num('statReach'),likes:num('statLikes'),comments:num('statComments'),saves:num('statSaves'),shares:num('statShares'),profile:num('statProfile'),follows:num('statFollows'),note:$('statNote').value.trim()};analytics.push(record);saveAnalytics();alert('آمار ثبت شد. این اطلاعات فقط در همین مرورگر ذخیره شده است.');};
@@ -240,7 +298,7 @@ $('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){ale
 $('prevMonth').onclick=()=>{calendarCursor=startOfPersianMonth(addDays(calendarCursor,-1));renderCalendar()};
 $('nextMonth').onclick=()=>{calendarCursor=startOfPersianMonth(addDays(calendarCursor,35));renderCalendar()};
 $('todayMonth').onclick=()=>{selectedCalendarDate=todayISO();calendarCursor=startOfPersianMonth(new Date());$('planDate').value=selectedCalendarDate;renderCalendar()};
-renderAnalytics();renderPlans();
+renderAnalytics();$('reportPeriod').onchange=renderReport;renderPlans();
 
 /* Local data backup and restore */
 $('exportBackup').onclick=()=>{
