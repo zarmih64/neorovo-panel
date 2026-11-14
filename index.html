@@ -22,31 +22,69 @@
 
 @media(max-width:430px){.cal-day{min-height:65px;padding:4px}.cal-event{font-size:8px;padding:2px}.monthnav button{font-size:9px;padding:6px}.monthbar strong{font-size:12px}}
 
+
+/* Official Instagram connection setup */
+.ig-step{border:1px solid var(--line);background:#100c19;border-radius:13px;padding:14px;margin-top:12px}
+.ig-step h4{font-size:13px;margin:0 0 8px;color:#eadcff}
+.ig-checklist{display:grid;gap:10px;margin:12px 0}
+.ig-checklist label{display:flex;align-items:flex-start;gap:9px;font-size:11px;line-height:1.9;color:#eee}
+.ig-checklist input{accent-color:#a66bff;margin-top:5px;flex:0 0 auto}
+.ig-progress{height:9px;border-radius:20px;background:#2a2037;overflow:hidden;margin-top:14px}
+.ig-progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--pink));transition:width .2s}
+
 </style></head>
 <body><main class="shell">
 <header class="top"><div class="brand"><div class="logo">N</div><div><h1>NEOROVO</h1><small>CONTENT STUDIO · نسخه آزمایشی</small></div></div><span class="tag">✦ متفاوت ببین، شگفت‌زده شو!</span></header>
 <section class="hero"><h2>استودیوی هوشمند محتوای تو</h2><p>ایده‌پردازی، سناریونویسی و مدیریت پیش‌نویس‌های ریلز در یک محیط ساده.<br><span class="slogan">هر محتوا قبل از انتشار، منتظر تأیید تو می‌ماند.</span></p></section>
 <div class="notice">نسخه MVP آزمایشی است. اطلاعات فقط در همین مرورگر ذخیره می‌شود؛ هنوز به اینستاگرام متصل نیست و چیزی را منتشر نمی‌کند. داده نمونه واقعی نیست.</div>
 <section class="card" id="instagramConnect" style="margin-bottom:16px">
- <div class="drafthead"><h3>📲 مرکز اتصال رسمی اینستاگرام</h3><span class="tag">آماده‌سازی اتصال</span></div>
- <div class="insight" style="margin-top:8px"><strong>وضعیت: هنوز متصل نیست</strong><br>این نسخه فعلاً رابط کاربری GitHub Pages است. برای اتصال واقعی، باید ورود امن Meta (OAuth) و یک سرویس سمت سرور اضافه شود؛ توکن و رمز برنامه نباید داخل مرورگر یا مخزن عمومی قرار بگیرند.</div>
- <div class="fields" style="margin-top:12px">
-  <div class="field"><label>نوع حساب اینستاگرام</label><select id="igAccountType"><option value="">هنوز مشخص نکرده‌ام</option><option>Creator (سازنده محتوا)</option><option>Business (تجاری)</option><option>Personal (شخصی)</option></select></div>
-  <div class="field"><label>وضعیت راه‌اندازی Meta</label><input value="برنامه Meta هنوز ساخته/متصل نشده" readonly></div>
+ <div class="drafthead"><h3>📲 مرکز اتصال رسمی اینستاگرام</h3><span class="tag">مرحله ۱ از ۴ · بررسی حساب</span></div>
+ <div class="insight" style="margin-top:8px"><strong>وضعیت اتصال: هنوز متصل نیست</strong><br>این بخش فعلاً راه‌اندازی و بررسی پیش‌نیازها را مدیریت می‌کند. دکمه ورود به اینستاگرام زمانی فعال می‌شود که سرویس امن سمت سرور آماده باشد؛ در این صفحه رمز یا توکن وارد نکن.</div>
+ <div class="ig-step">
+  <h4>۱) نوع حساب NEOROVO را مشخص کن</h4>
+  <p class="hint">در اپ اینستاگرام وارد پروفایل NEOROVO شو، منوی سه‌خط را باز کن و در «تنظیمات و فعالیت» بخش «نوع حساب و ابزارها» یا «ابزارهای حرفه‌ای» را بررسی کن. عنوان دقیق منو ممکن است با نسخه برنامه فرق کند.</p>
+  <div class="fields">
+   <div class="field"><label for="igAccountType">نوع حساب فعلی</label><select id="igAccountType"><option value="unknown">هنوز بررسی نکرده‌ام</option><option value="personal">Personal · شخصی</option><option value="creator">Creator · سازنده محتوا</option><option value="business">Business · تجاری</option></select></div>
+   <div class="field"><label>پیشنهاد برای NEOROVO</label><input value="Creator؛ مناسب برند تولیدکننده محتوا" readonly></div>
+  </div>
+  <div id="igAccountAdvice" class="insight">ابتدا نوع حساب را از داخل اپ اینستاگرام بررسی و در فهرست بالا انتخاب کن.</div>
+  <div class="actions"><button class="btn primary" id="igSaveAccount">ذخیره نوع حساب</button></div>
  </div>
- <div class="module-grid">
-  <div class="metric"><span>انتشار ریلز و پست</span><strong>قابل پیاده‌سازی</strong></div>
-  <div class="metric"><span>دریافت آمار و Insights</span><strong>قابل پیاده‌سازی</strong></div>
-  <div class="metric"><span>مدیریت کامنت‌ها</span><strong>با مجوز رسمی</strong></div>
-  <div class="metric"><span>مدیریت دایرکت</span><strong>با محدودیت Meta</strong></div>
+ <div class="ig-step">
+  <h4>۲) مسیر اتصال فنی</h4>
+  <p class="hint">مسیر پیشنهادی ما «Instagram API with Instagram Login» است. برای این مسیر، حساب باید Creator یا Business باشد و معمولاً نیازی به اتصال Facebook Page نیست. مسیر Facebook Login پیش‌نیازهای متفاوتی دارد؛ فعلاً آن را انتخاب نمی‌کنیم.</p>
+  <div class="module-grid">
+   <div class="metric"><span>انتشار ریلز و پست</span><strong>پس از مجوز</strong></div>
+   <div class="metric"><span>Insights و آمار</span><strong>پس از مجوز</strong></div>
+   <div class="metric"><span>مدیریت کامنت</span><strong>مجوز جداگانه</strong></div>
+   <div class="metric"><span>مدیریت دایرکت</span><strong>محدودیت‌های Meta</strong></div>
+  </div>
+  <div class="actions">
+   <a class="btn primary" href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">ورود به Meta Developers ↗</a>
+   <a class="btn soft" href="https://developers.facebook.com/docs/instagram/platform/" target="_blank" rel="noopener">مستندات رسمی API ↗</a>
+   <a class="btn soft" href="https://www.postman.com/meta/instagram/overview" target="_blank" rel="noopener">راهنمای رسمی Meta در Postman ↗</a>
+  </div>
  </div>
- <p class="hint">مسیر فنی: ورود رسمی Instagram/Meta → دریافت مجوزهای لازم → نگهداری امن توکن در سرور → اتصال پنل به API. حساب باید حرفه‌ای (Creator یا Business) باشد. برای پاسخ خودکار به پیام‌ها باید محدودیت پنجره پاسخ و امکان ارجاع به اپراتور انسانی رعایت شود.</p>
- <div class="actions">
-  <a class="btn primary" href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">ساخت برنامه در Meta Developers ↗</a>
-  <a class="btn soft" href="https://developers.facebook.com/docs/instagram/platform/" target="_blank" rel="noopener">مستندات رسمی Instagram API ↗</a>
-  <a class="btn soft" href="https://developers.facebook.com/documentation/business-messaging/instagram-messaging/overview" target="_blank" rel="noopener">قوانین و محدودیت دایرکت ↗</a>
+ <div class="ig-step">
+  <h4>۳) چک‌لیست آماده‌سازی اتصال</h4>
+  <p class="hint">هر مورد را فقط پس از انجام واقعی علامت بزن. وضعیت این چک‌لیست در همین مرورگر ذخیره می‌شود.</p>
+  <div id="igChecklist" class="ig-checklist">
+   <label><input type="checkbox" data-ig-check="account"> حساب NEOROVO از نوع Creator یا Business است.</label>
+   <label><input type="checkbox" data-ig-check="meta"> حساب توسعه‌دهنده Meta و برنامه (App) ساخته شده است.</label>
+   <label><input type="checkbox" data-ig-check="product"> قابلیت Instagram Login در برنامه Meta تنظیم شده است.</label>
+   <label><input type="checkbox" data-ig-check="redirect"> نشانی HTTPS بازگشت (OAuth Redirect URI) در Meta ثبت شده است.</label>
+   <label><input type="checkbox" data-ig-check="backend"> سرویس سمت سرور امن برای OAuth و نگهداری توکن راه‌اندازی شده است.</label>
+   <label><input type="checkbox" data-ig-check="test"> ورود آزمایشی و دریافت اطلاعات پایه حساب با موفقیت تست شده است.</label>
+  </div>
+  <div class="ig-progress"><div id="igProgressFill"></div></div>
+  <p id="igProgressText" class="mini-muted">۰ از ۶ مرحله تکمیل شده است.</p>
  </div>
- <p class="hint">امنیت: رمز اینستاگرام، Access Token یا App Secret را در این صفحه یا در چت وارد نکن. اتصال واقعی را فقط با صفحه ورود رسمی Meta و ذخیره امن سمت سرور انجام می‌دهیم. ربات لایک/فالو/آنفالو انبوه یا ارسال اسپم هم در نرم‌افزار قرار نمی‌دهیم.</p>
+ <div class="ig-step">
+  <h4>۴) وضعیت فنی و امنیت</h4>
+  <div class="insight"><strong>اتصال واقعی هنوز ساخته نشده است.</strong><br>GitHub Pages فقط رابط کاربری است و به‌تنهایی نمی‌تواند App Secret یا Access Token را امن نگه دارد. مرحله بعد، ساخت OAuth callback و ذخیره رمزنگاری‌شده توکن در یک سرویس سمت سرور است. تا آن زمان هیچ دکمه‌ای نباید ادعای اتصال موفق کند.</div>
+  <p class="hint">مجوزهای موردنیاز را فقط به‌اندازه قابلیت‌هایی که واقعاً فعال می‌کنیم درخواست می‌کنیم؛ مانند دسترسی پایه، انتشار محتوا، Insights، مدیریت کامنت و پیام. دسترسی‌های اضافی و قابلیت‌های اسپم، فالو/آنفالو یا لایک انبوه در برنامه قرار نمی‌گیرند.</p>
+  <p class="mini-muted">امنیت: رمز اینستاگرام، App Secret و Access Token را در این پنل، چت یا مخزن عمومی وارد نکن. برای انتشار خودکار نیز محتوا باید پیش از ارسال، با تأیید تو مشخص شود.</p>
+ </div>
 </section>
 <section class="card" style="margin-bottom:16px">
 <div class="drafthead"><h3>🤖 اتصال هوش مصنوعی Gemini</h3><span class="tag">طرح رایگان با محدودیت</span></div>
@@ -426,5 +464,39 @@ $('importBackup').onchange=async(event)=>{
  }catch(e){$('backupStatus').textContent='بازیابی انجام نشد: '+e.message;$('backupStatus').className='ai-status err'}
  finally{event.target.value=''}
 };
+
+
+/* Instagram setup checklist: local progress only; no OAuth is performed here */
+(()=>{
+ const account=$('igAccountType'),advice=$('igAccountAdvice'),checks=[...document.querySelectorAll('[data-ig-check]')];
+ const accountKey='neorovo_ig_account_type',checkKey='neorovo_ig_setup_checks';
+ const savedAccount=localStorage.getItem(accountKey);
+ if(savedAccount && account) account.value=savedAccount;
+ let savedChecks={};try{savedChecks=JSON.parse(localStorage.getItem(checkKey)||'{}')||{}}catch(e){}
+ function accountMessage(value){
+  if(!advice)return;
+  if(value==='personal') advice.innerHTML='<strong>این حساب هنوز برای API رسمی مناسب نیست.</strong><br>از «نوع حساب و ابزارها» گزینه «تبدیل به حساب حرفه‌ای» را انتخاب کن و برای NEOROVO معمولاً Creator را برگزین. پس از تبدیل، دوباره اینجا Creator را انتخاب و ذخیره کن.';
+  else if(value==='creator') advice.innerHTML='<strong>عالی؛ Creator برای NEOROVO مناسب است.</strong><br>می‌توانیم پس از ساخت برنامه Meta و سرویس امن سمت سرور، مسیر Instagram Login را پیاده‌سازی کنیم.';
+  else if(value==='business') advice.innerHTML='<strong>این نوع حساب نیز پشتیبانی می‌شود.</strong><br>می‌توانیم با همین حساب ادامه بدهیم؛ اگر برند را بیشتر به‌عنوان تولیدکننده محتوا اداره می‌کنی، Creator هم گزینه مناسبی است.';
+  else advice.textContent='ابتدا نوع حساب را از داخل اپ اینستاگرام بررسی و در فهرست بالا انتخاب کن.';
+ }
+ function renderChecks(){
+  const done=checks.filter(c=>c.checked).length;
+  const pct=Math.round(done/Math.max(checks.length,1)*100);
+  const fill=$('igProgressFill'),txt=$('igProgressText');
+  if(fill)fill.style.width=pct+'%';
+  if(txt)txt.textContent=done+' از '+checks.length+' مرحله تکمیل شده است · '+pct+'٪';
+ }
+ if(account){accountMessage(account.value);account.addEventListener('change',()=>accountMessage(account.value))}
+ checks.forEach(c=>{c.checked=!!savedChecks[c.dataset.igCheck];c.addEventListener('change',()=>{savedChecks[c.dataset.igCheck]=c.checked;localStorage.setItem(checkKey,JSON.stringify(savedChecks));renderChecks()})});
+ const save=$('igSaveAccount');
+ if(save)save.addEventListener('click',()=>{
+  const v=account.value;localStorage.setItem(accountKey,v);
+  if(v==='creator'||v==='business'){const c=checks.find(x=>x.dataset.igCheck==='account');if(c){c.checked=true;savedChecks.account=true;localStorage.setItem(checkKey,JSON.stringify(savedChecks))}}
+  else {const c=checks.find(x=>x.dataset.igCheck==='account');if(c){c.checked=false;savedChecks.account=false;localStorage.setItem(checkKey,JSON.stringify(savedChecks))}}
+  renderChecks();accountMessage(v);alert('نوع حساب در همین مرورگر ذخیره شد. این کار به معنی اتصال اینستاگرام نیست.');
+ });
+ renderChecks();
+})();
 
 </script></body></html>
