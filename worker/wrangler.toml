@@ -1,0 +1,7 @@
+name = "neorovo-instagram-connector"
+main = "src/index.js"
+compatibility_date = "2026-11-14"
+
+[[kv_namespaces]]
+binding = "IG_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
