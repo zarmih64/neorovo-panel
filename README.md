@@ -47,3 +47,13 @@
 - این نسخه هنوز OAuth، callback، token exchange، ذخیره امن توکن، webhook یا انتشار واقعی را پیاده‌سازی نکرده است. GitHub Pages محل نگهداری امن App Secret یا Access Token نیست.
 - تا قبل از راه‌اندازی backend امن و تست OAuth، نباید وضعیت «متصل» نمایش داده شود.
 - مستندات: https://developers.facebook.com/docs/instagram/platform/ و https://developers.facebook.com/apps/
+
+
+## سرویس سمت سرور اتصال Instagram
+کد اولیه Cloudflare Worker در پوشه `worker/` اضافه شده است:
+- `worker/src/index.js`: شروع OAuth، اعتبارسنجی state یک‌بارمصرف، تبادل کد با توکن کوتاه‌مدت و سپس توکن بلندمدت، خواندن پروفایل، رمزنگاری AES-GCM و ذخیره در KV.
+- `worker/wrangler.toml`: تنظیمات اولیه استقرار.
+- `worker/README.md`: راهنمای کامل ایجاد KV، تنظیم متغیرها و Secretها، تنظیم Meta و Deploy.
+- رابط پنل اکنون URL سرویس Worker و کد مدیریتی اتصال را می‌گیرد و وضعیت اتصال را از API می‌خواند. کد مدیریتی و URL فقط در حافظه محلی مرورگر ذخیره نمی‌شوند؛ URL ذخیره می‌شود اما کد مدیریتی فقط تا زمانی که در فیلد باقی است استفاده می‌شود.
+
+**وضعیت:** کد آماده و در مخزن ثبت شده، اما Worker هنوز Deploy نشده و OAuth زنده آزمایش نشده است. تا زمانی که کاربر Cloudflare را پیکربندی نکند و Meta App ID/Secret را در بخش Secrets قرار ندهد، اتصال برقرار نخواهد شد. هرگز Secretها را در GitHub commit نکنید.
