@@ -44,7 +44,7 @@
   <h4>۱) نوع حساب NEOROVO را مشخص کن</h4>
   <p class="hint">در اپ اینستاگرام وارد پروفایل NEOROVO شو، منوی سه‌خط را باز کن و در «تنظیمات و فعالیت» بخش «نوع حساب و ابزارها» یا «ابزارهای حرفه‌ای» را بررسی کن. عنوان دقیق منو ممکن است با نسخه برنامه فرق کند.</p>
   <div class="fields">
-   <div class="field"><label for="igAccountType">نوع حساب فعلی</label><select id="igAccountType"><option value="unknown">هنوز بررسی نکرده‌ام</option><option value="personal">Personal · شخصی</option><option value="creator">Creator · سازنده محتوا</option><option value="business">Business · تجاری</option></select></div>
+   <div class="field"><label for="igAccountType">نوع حساب فعلی</label><select id="igAccountType"><option value="unknown">هنوز بررسی نکرده‌ام</option><option value="personal">Personal · شخصی</option><option value="creator" selected>Creator · سازنده محتوا</option><option value="business">Business · تجاری</option></select></div>
    <div class="field"><label>پیشنهاد برای NEOROVO</label><input value="Creator؛ مناسب برند تولیدکننده محتوا" readonly></div>
   </div>
   <div id="igAccountAdvice" class="insight">ابتدا نوع حساب را از داخل اپ اینستاگرام بررسی و در فهرست بالا انتخاب کن.</div>
@@ -471,8 +471,10 @@ $('importBackup').onchange=async(event)=>{
  const account=$('igAccountType'),advice=$('igAccountAdvice'),checks=[...document.querySelectorAll('[data-ig-check]')];
  const accountKey='neorovo_ig_account_type',checkKey='neorovo_ig_setup_checks';
  const savedAccount=localStorage.getItem(accountKey);
- if(savedAccount && account) account.value=savedAccount;
+ if(account) account.value=savedAccount || 'creator';
+ if(!savedAccount) localStorage.setItem(accountKey,'creator');
  let savedChecks={};try{savedChecks=JSON.parse(localStorage.getItem(checkKey)||'{}')||{}}catch(e){}
+ if(!Object.prototype.hasOwnProperty.call(savedChecks,'account')){savedChecks.account=true;localStorage.setItem(checkKey,JSON.stringify(savedChecks));}
  function accountMessage(value){
   if(!advice)return;
   if(value==='personal') advice.innerHTML='<strong>این حساب هنوز برای API رسمی مناسب نیست.</strong><br>از «نوع حساب و ابزارها» گزینه «تبدیل به حساب حرفه‌ای» را انتخاب کن و برای NEOROVO معمولاً Creator را برگزین. پس از تبدیل، دوباره اینجا Creator را انتخاب و ذخیره کن.';
