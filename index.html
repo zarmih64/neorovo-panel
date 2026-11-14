@@ -83,7 +83,18 @@
  </div>
  <div class="actions"><button class="btn primary" id="addPlan">افزودن به تقویم</button></div>
  <div id="planList"></div>
-</section>\n<footer class="foot">NEOROVO © · نسخه آزمایشی اولیه · انتشار فقط با تأیید دستی صاحب صفحه</footer>
+</section>\n<section class="card" id="backupSection" style="margin-top:16px">
+ <div class="drafthead"><h3>🛡 پشتیبان‌گیری و بازیابی اطلاعات</h3><span class="tag">محافظت از داده‌ها</span></div>
+ <p class="hint">برای جلوگیری از پاک‌شدن اطلاعات، هر چند وقت یک‌بار از پیش‌نویس‌ها، آمار ریلزها و تقویم محتوا یک فایل پشتیبان بگیر. فایل فقط روی دستگاه خودت ذخیره می‌شود.</p>
+ <div class="actions">
+  <button class="btn primary" id="exportBackup">⬇ دریافت فایل پشتیبان</button>
+  <label class="btn soft" for="importBackup" style="display:inline-flex;align-items:center">⬆ بازیابی از فایل</label>
+  <input id="importBackup" type="file" accept=".json,application/json" style="display:none">
+ </div>
+ <div id="backupStatus" class="ai-status">هنوز پشتیبانی ساخته نشده است. فایل پشتیبان را در جای امن نگه دار.</div>
+ <p class="mini-muted">کلید Gemini عمداً داخل فایل پشتیبان قرار نمی‌گیرد. بازیابی، اطلاعات فعلی همین مرورگر را با اطلاعات فایل جایگزین می‌کند؛ قبل از آن یک نسخه پشتیبان بگیر.</p>
+</section>
+<footer class="foot">NEOROVO © · نسخه آزمایشی اولیه · انتشار فقط با تأیید دستی صاحب صفحه</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);let current=null,filter='all';let drafts=JSON.parse(localStorage.getItem('neorovo_drafts')||'[]');
@@ -146,5 +157,34 @@ function renderPlans(){const el=$('planList');el.innerHTML=plans.length?plans.sl
 function deletePlan(id){if(confirm('این برنامه از تقویم حذف شود؟')){plans=plans.filter(p=>p.id!==id);localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}}
 $('addPlan').onclick=()=>{const title=$('planTitle').value.trim();if(!title){alert('موضوع محتوا را بنویس.');return}plans.push({id:String(Date.now()),title,date:$('planDate').value||todayISO(),category:$('planCategory').value,status:$('planStatus').value});localStorage.setItem('neorovo_plans',JSON.stringify(plans));$('planTitle').value='';renderPlans()};
 renderAnalytics();renderPlans();
+
+/* Local data backup and restore */
+$('exportBackup').onclick=()=>{
+ try{
+  const backup={app:'NEOROVO',version:1,createdAt:new Date().toISOString(),drafts,analytics,plans};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='neorovo-backup-'+todayISO()+'.json';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  $('backupStatus').textContent='فایل پشتیبان آماده شد. آن را در جای امنی نگه دار.';
+  $('backupStatus').className='ai-status ok';
+ }catch(e){$('backupStatus').textContent='ساخت فایل پشتیبان ناموفق بود: '+e.message;$('backupStatus').className='ai-status err'}
+};
+$('importBackup').onchange=async(event)=>{
+ const file=event.target.files&&event.target.files[0];if(!file)return;
+ try{
+  const raw=await file.text(),data=JSON.parse(raw);
+  if(data.app!=='NEOROVO'||data.version!==1||!Array.isArray(data.drafts)||!Array.isArray(data.analytics)||!Array.isArray(data.plans))throw new Error('ساختار فایل پشتیبان معتبر نیست.');
+  if(!confirm('این فایل شامل '+data.drafts.length+' پیش‌نویس، '+data.analytics.length+' آمار و '+data.plans.length+' برنامه است. اطلاعات فعلی این مرورگر جایگزین شود؟'))return;
+  drafts=data.drafts;analytics=data.analytics;plans=data.plans;
+  localStorage.setItem('neorovo_drafts',JSON.stringify(drafts));
+  localStorage.setItem('neorovo_analytics',JSON.stringify(analytics));
+  localStorage.setItem('neorovo_plans',JSON.stringify(plans));
+  render();renderAnalytics();renderPlans();
+  $('backupStatus').textContent='بازیابی با موفقیت انجام شد. اطلاعات این مرورگر به‌روزرسانی شد.';
+  $('backupStatus').className='ai-status ok';
+ }catch(e){$('backupStatus').textContent='بازیابی انجام نشد: '+e.message;$('backupStatus').className='ai-status err'}
+ finally{event.target.value=''}
+};
 
 </script></body></html>
