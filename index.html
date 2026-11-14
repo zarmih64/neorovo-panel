@@ -164,8 +164,8 @@ $('resetStats').onclick=()=>{['statTitle','statDate','statViews','statReach','st
 let calendarCursor=new Date();calendarCursor.setDate(1);let selectedCalendarDate=todayISO();
 function savePlans(){localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}
 function isoLocal(y,m,d){const dt=new Date(y,m,d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
-function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR',{weekday:'long',day:'numeric',month:'long'}).format(d)}
-function monthLabel(d){return new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'long'}).format(d)}
+function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR',{calendar:'gregory',weekday:'long',day:'numeric',month:'long'}).format(d)}
+function monthLabel(d){return new Intl.DateTimeFormat('fa-IR',{calendar:'gregory',year:'numeric',month:'long'}).format(d)}
 function renderCalendar(){
  const grid=$('calendarGrid');if(!grid)return;
  $('calendarMonthLabel').textContent=monthLabel(calendarCursor);
