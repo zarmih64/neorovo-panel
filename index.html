@@ -161,22 +161,47 @@ function renderAnalytics(){
 function deleteAnalytics(id){if(confirm('این ردیف آمار حذف شود؟')){analytics=analytics.filter(x=>x.id!==id);saveAnalytics()}}
 $('saveStats').onclick=()=>{const title=$('statTitle').value.trim();if(!title){alert('عنوان ریلز را وارد کن.');return}const record={id:String(Date.now()),title,date:$('statDate').value||todayISO(),category:$('statCategory').value,views:num('statViews'),reach:num('statReach'),likes:num('statLikes'),comments:num('statComments'),saves:num('statSaves'),shares:num('statShares'),profile:num('statProfile'),follows:num('statFollows'),note:$('statNote').value.trim()};analytics.push(record);saveAnalytics();alert('آمار ثبت شد. این اطلاعات فقط در همین مرورگر ذخیره شده است.');};
 $('resetStats').onclick=()=>{['statTitle','statDate','statViews','statReach','statLikes','statComments','statSaves','statShares','statProfile','statFollows','statNote'].forEach(id=>$(id).value='');$('statDate').value=todayISO();};
-const persianCalendar=new Intl.DateTimeFormat('fa-IR',{calendar:'persian',numberingSystem:'arabext',year:'numeric',month:'long',day:'numeric'});
-const persianNumeric=new Intl.DateTimeFormat('en-US',{calendar:'persian',numberingSystem:'latn',year:'numeric',month:'numeric',day:'numeric'});
-function persianParts(date){const parts=persianNumeric.formatToParts(date),out={};parts.forEach(p=>{if(p.type==='year'||p.type==='month'||p.type==='day')out[p.type]=Number(p.value)});return out}
+const jalaliBreaks=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+const jalaliMonths=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const jalaliWeekdays=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+function jDiv(a,b){return Math.trunc(a/b)}
+function jMod(a,b){return a-jDiv(a,b)*b}
+function jalaliYearStart(jy){
+ let gy=jy+621,leapJ=-14,jp=jalaliBreaks[0],jm,jump,n;
+ if(jy<jp||jy>=jalaliBreaks[jalaliBreaks.length-1])throw new Error('سال شمسی خارج از محدوده است');
+ for(let i=1;i<jalaliBreaks.length;i++){jm=jalaliBreaks[i];jump=jm-jp;if(jy<jm)break;leapJ+=jDiv(jump,33)*8+jDiv(jMod(jump,33),4);jp=jm}
+ n=jy-jp;leapJ+=jDiv(n,33)*8+jDiv(jMod(n,33)+3,4);
+ if(jMod(jump,33)===4&&jump-n===4)leapJ++;
+ const leapG=jDiv(gy,4)-jDiv((jDiv(gy,100)+1)*3,4)-150;
+ const march=20+leapJ-leapG;
+ return new Date(gy,2,march,12);
+}
+function jalaliParts(date){
+ let jy=date.getFullYear()-621,ny=jalaliYearStart(jy);
+ const dayKey=d=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
+ if(dayKey(date)<dayKey(ny)){jy--;ny=jalaliYearStart(jy)}
+ let days=Math.round((dayKey(date)-dayKey(ny))/86400000),month,day;
+ if(days<186){month=1+jDiv(days,31);day=jMod(days,31)+1}
+ else{days-=186;month=7+jDiv(days,30);day=jMod(days,30)+1}
+ return {year:jy,month,day};
+}
 function dateAtNoon(date){return new Date(date.getFullYear(),date.getMonth(),date.getDate(),12)}
 function addDays(date,n){const d=dateAtNoon(date);d.setDate(d.getDate()+n);return d}
-function startOfPersianMonth(date){let d=dateAtNoon(date);for(let i=0;i<32;i++){if(persianParts(d).day===1)return d;d=addDays(d,-1)}return d}
+function startOfPersianMonth(date){const p=jalaliParts(date);return addDays(dateAtNoon(date),1-p.day)}
+function jalaliMonthLength(year,month){
+ if(month<=6)return 31;if(month<=11)return 30;
+ const next=jalaliYearStart(year+1),current=jalaliYearStart(year);
+ return Math.round((Date.UTC(next.getFullYear(),next.getMonth(),next.getDate())-Date.UTC(current.getFullYear(),current.getMonth(),current.getDate()))/86400000)===366?30:29;
+}
 let calendarCursor=startOfPersianMonth(new Date()),selectedCalendarDate=todayISO();
 function savePlans(){localStorage.setItem('neorovo_plans',JSON.stringify(plans));renderPlans()}
 function isoFromDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00');return new Intl.DateTimeFormat('fa-IR',{calendar:'persian',numberingSystem:'arabext',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d)}
-function monthLabel(d){return new Intl.DateTimeFormat('fa-IR',{calendar:'persian',numberingSystem:'arabext',year:'numeric',month:'long'}).format(d)}
+function faDateLabel(iso){if(!iso)return '';const d=new Date(iso+'T12:00:00'),p=jalaliParts(d);return jalaliWeekdays[d.getDay()]+' '+fa(p.day)+' '+jalaliMonths[p.month-1]+' '+fa(p.year)}
+function monthLabel(d){const p=jalaliParts(d);return jalaliMonths[p.month-1]+' '+fa(p.year)}
 function renderCalendar(){
  const grid=$('calendarGrid');if(!grid)return;
  $('calendarMonthLabel').textContent=monthLabel(calendarCursor);
- const first=calendarCursor,firstParts=persianParts(first);
- let lastDay=1;while(lastDay<32){const next=addDays(first,lastDay);const p=persianParts(next);if(p.year!==firstParts.year||p.month!==firstParts.month)break;lastDay++}
+ const first=calendarCursor,firstParts=jalaliParts(first),lastDay=jalaliMonthLength(firstParts.year,firstParts.month)
  const offset=(first.getDay()+1)%7,totalCells=Math.ceil((offset+lastDay)/7)*7;
  const weekdays=['ش','ی','د','س','چ','پ','ج'];
  let html=weekdays.map(w=>'<div class="cal-weekday">'+w+'</div>').join('');
